@@ -35,5 +35,8 @@ Running the clock:
    or the app keeps crashing, then delete the config.conf file. Rerun the script, this will autogenerate the file.
 
 5. Thanks for checking this out. If you like this, a light-weight version of this clock is also available which has less effects:
-        https://www.github.com/Souravgoswami
-                               Thank You
+        https://www.github.com/Souravgoswami/Space-Clock-Lite
+
+6. For any bugs report, please contact:
+        sg97@protonmail.com
+                        Thank You
