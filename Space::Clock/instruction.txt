@@ -1,0 +1,39 @@
+Space::Clock - A clock for space enthusiasts!
+
+Running the clock:
+    1. You need Ruby, and Ruby2D.
+         You can download and install Ruby from here (documentation provided on the website):
+                  https://www.ruby-lang.org/en/downloads/
+         You can get Ruby2D from here:
+                  http://www.ruby2d.com/learn/get-started/
+    2. After successful installation, go to the Space::Clock directory/folder, and run the main.rb file with ruby.
+    3. You can run it directly by clicking on it twice, like other applications - for that you first need to make it executable: chmod 777 main.rb
+
+
+1. You have a config.conf file in the script's folder - you can edit that and customize your clock. Read the file for help, and for more info.
+
+2. You can use mouse to customize the look:
+    1. You can use your mouse scroll button and scroll to reduce the foreground brightness. Where the real magic starts. You see rockets, comets, planets,
+       ice-crystals, and all those interesting space stuffs.
+    2. If you have any custom text on the config.conf file, you can drag it with mouse. Click the primary mouse button (by default the left mouse button)
+       on the object, you should see a move icon appearing, drag that. Note that the date will always come to the center of the mouse.
+    3. Clicking the primary mouse button (the left mouse button by default) on time and date, you can switch the time and date format.
+    4. Clicking on an empty space, will show you some greeting messages.
+    5. Clicking the secondary mouse button (by default the right mouse button) will switch the background colour to a random colour.
+
+3. You do have keyboard functionalities:
+    1. Pressing the Space key will reduce or restore the foreground brightness to maximum/minimum.
+    2. Down and up keys will reduce, and increase the foreground brightness slowly.
+    3. Press any shift key spawn a new Space::Clock on a new thread! Very splendid if you have more than one display.
+    4. The Right and Left keys will shuffle the mouse cursor particles.
+    5. Press Escape, Q, or P to exit. Caps-lock doesn't matter.
+    6. Press any Alt key, any CTRL key, or Tab key to shuffle everything, and put the custom-texts on its real position.
+    7. Press the C or S keys to have a look at the config.conf file graphically. Note: You can't change your settings from there.
+    8. Press I or A for this help window.
+
+4. If the config.conf file is corrupted, don't worry. Run the main.rb file, this will regenerate the file with the default configuration. If nothing happens,
+   or the app keeps crashing, then delete the config.conf file. Rerun the script, this will autogenerate the file.
+
+5. Thanks for checking this out. If you like this, a light-weight version of this clock is also available which has less effects:
+        https://www.github.com/Souravgoswami
+                               Thank You
