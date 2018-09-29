@@ -1,4 +1,4 @@
-Yet another beautiful and configurable digital clock written with ruby.
+Yet another beautiful and configurable digital clock written in ruby.
 
 **Running the clock:**
   1. You need Ruby, and Ruby2D.
