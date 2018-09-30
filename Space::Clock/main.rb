@@ -4,132 +4,39 @@
 begin
 	require_relative 'ruby2d/ruby2d.rb'
 	file = File.open('config.conf')
-$info = file.readlines
-res = $info[0][$info[0].index('=') + 1 .. - 1]
-$border = $info[1][$info[1].index('=') + 1 .. - 1].chomp == 'true'
-$fullscreen = $info[2][$info[2].index('=') + 1 .. -1].chomp == 'true'
-$width, $height= res[0..res.index('x') - 1].to_i, res[res.index('x') + 1..-1].to_i
-$defaulttimeformat = $info[3][$info[3].index('=') + 1 .. -1].chomp == '24'
-$defaultdateformat = $info[4][$info[4].index('=') + 1 .. - 1].chomp
-$defaultcolours = $info[5][$info[5].index('=') + 1 .. -1].chomp
-$defaultcolours = $defaultcolours.split(',')
-$spaceships = $info[6][$info[6].index('=') + 1..-1].to_i
-$staticmagic = $info[7][$info[7].index('=') + 1..-1].to_i
-$planets = $info[8][$info[8].index('=') + 1..-1].to_i
-$comets = $info[9][$info[9].index('=') + 1..-1].to_i
-$particle = $info[10][$info[10].index('=') + 1..-1].to_i
-$magicparticles = $info[11][$info[11].index('=') + 1..-1].to_i
-$flakes = $info[12][$info[12].index('=') + 1..-1].to_i
-$hoverparticles = $info[13][$info[13].index('=') + 1..-1].to_i
-$fontsize = $info[14][$info[14].index('=') + 1..-1].to_i
-$customtext1 = $info[15][$info[15].index('=') + 1..-1].chomp
-$customsize1 = $info[16][$info[16].index('=') + 1..-1].to_i
-$customtext2 = $info[17][$info[17].index('=') + 1..-1].chomp
-$customsize2 = $info[18][$info[18].index('=') + 1..-1].to_i
-$customfont = $info[19][$info[19].index('=') + 1..-1].chomp
-$customfontcolour = $info[20][$info[20].index('=') + 1..-1].chomp
+	$info = file.readlines
+	res = $info[0][$info[0].index('=') + 1 .. - 1]
+	$border = $info[1][$info[1].index('=') + 1 .. - 1].chomp == 'true'
+	$fullscreen = $info[2][$info[2].index('=') + 1 .. -1].chomp == 'true'
+	$width, $height= res[0..res.index('x') - 1].to_i, res[res.index('x') + 1..-1].to_i
+	$defaulttimeformat = $info[3][$info[3].index('=') + 1 .. -1].chomp == '24'
+	$defaultdateformat = $info[4][$info[4].index('=') + 1 .. - 1].chomp
+	$defaultcolours = $info[5][$info[5].index('=') + 1 .. -1].chomp
+	$defaultcolours = $defaultcolours.split(',')
+	$spaceships = $info[6][$info[6].index('=') + 1..-1].to_i
+	$staticmagic = $info[7][$info[7].index('=') + 1..-1].to_i
+	$planets = $info[8][$info[8].index('=') + 1..-1].to_i
+	$comets = $info[9][$info[9].index('=') + 1..-1].to_i
+	$particle = $info[10][$info[10].index('=') + 1..-1].to_i
+	$magicparticles = $info[11][$info[11].index('=') + 1..-1].to_i
+	$flakes = $info[12][$info[12].index('=') + 1..-1].to_i
+	$hoverparticles = $info[13][$info[13].index('=') + 1..-1].to_i
+	$fontsize = $info[14][$info[14].index('=') + 1..-1].to_i
+	$customtext1 = $info[15][$info[15].index('=') + 1..-1].chomp
+	$customsize1 = $info[16][$info[16].index('=') + 1..-1].to_i
+	$customtext2 = $info[17][$info[17].index('=') + 1..-1].chomp
+	$customsize2 = $info[18][$info[18].index('=') + 1..-1].to_i
+	$customfont = $info[19][$info[19].index('=') + 1..-1].chomp
+	$customfontcolour = $info[20][$info[20].index('=') + 1..-1].chomp
 rescue LoadError
 	STDERR.puts "Uh Oh, Ruby2D is not installed"
 	abort
 rescue NoMethodError, Errno::ENOENT
 	STDERR.puts "Generating the config.conf file with default values."
-	file = File.open('config.conf', 'w')
-	file.truncate(0)
-	file.write <<EOF
-resolution=1200x620
-borderless=false
-fullscreen=false
-timeformat=12
-dateformat=%d/%m/%y
-defaultcolour=#0050a6,purple,aqua,#ff50a6
-spaceships=12
-static_stars=100
-planets=6
-comets=10
-floating_square=8
-magicparticles=4
-snow flakes=25
-mouse_move_particles=30
-fontsize=50
-custom text 1=
-custom text 1 size=80
-custom text 2=
-custom text 2 size=100
-custom font path=mage/arima.otf
-custom font color=#3ce3b4
-################################################################################
-Help:
-Change the above options according to your need.
-The available options are:
-
-resolution=WIDTHxHEIGHT
-borderless=true/false
-fullscreen=true/false
-timeformat=24/12
-dateformat=%d/%m/%y or %m/%d/%y or %y/%d/%m or %y/%m/%d and so on.
-defaultcolour=#0050a6,fuchsia,red,random or your colours
-spaceships=1/your number
-static_stars=0/your number
-planets=0/your number
-comets=0/your number
-floating_square=0/your number
-magicparticles=0/your number
-snow flakes=0/your number
-mouse_move_particles=1/your number
-fontsize=50(tested)/your number
-custom text 1=Hello/custom text with no quotation(or the quotes will be displayed)
-custom text 1 size=80/your custom number
-custom text 2=Welcome!/custom text with no quotation(or the quotes will be displayed)
-custom text 2 size=100/custom number
-custom font path=mage/arima.otf(default), you can provide your path!
-custom font color=white/your colour, it may be a random, or a hex, or an available name. Go to Suggestion 2 for more info.
---------------------------------------------------------------------------------
-NOTE 1:	there should be no spaces between '='
-
-NOTE 2:	Changing to an unexpected value may crash the app
-		or even may freeze your computer.
-
-NOTE 3:	Don not append a different line before the last value - Anything before the trailing hashes (####) (above)
-		You can write anything after that. These current lines are the examples.
-
-NOTE 4:	Too high resolution or spaships, static stars, etc. will cause a
-		slowdown. Huge values can even freeze your computer.
-
-NOTE 5: The font size of time will always be 20 pts. larger.
-
-Suggestion 1: Changing the fullscreen to true, and get it working on the
-	fullscreen mode may require the resolution to be changed.
-	Example: If you have a 1920x1080 monitor, change the resolution to 1920x1080 and then change fullscreen to true.
-		The file should look like the following:
-			resolution:1920x1080
-			borderless=true/false
-			fullscreen=true
-			... (other options according to your needs)
-			(no tabs, spaces, or invalid values after the =. The values after = will get processed).
-
-Suggestion 2: You can use hex colours like as defaultcolour, this will be displayed as the app starts:
-	Example:
-			defaultcolour=#3ce3b4,#0050a6,fuchsia,purple
-	The available colour names are:
-			navy, blue, aqua, teal, olive, green, lime, yellow, orange,
-			red, brown, fuchsia, purple, maroon, white, silver, gray, black
-
-	Or use the hex code of your favourite colour combinations.
-
-	You can get a single colour by repeating the colour like this:
-			defaultcolour=blue,blue,blue,blue
-
-Suggestion 3: You can create random colours, just write random in place of colour names.
-	Example:
-			defaultcolour=random,purple,teal,#3ce3b5
---------------------------------------------------------------------------------
-If the file gets corrupted, or you forget the values after modification, and you find no clue, then delete this config.conf file.
-Run the program once, and it should automatically generate this file with the default values.
-Just make sure you have proper write access.
-EOF
+	Thread.new { system('ruby', 'Subwindows/conf_generator.rb') }
+	sleep 1
 	Thread.new { system('ruby', 'main.rb') }
 ensure
-	file.close
 	at_exit do puts "\033[1;34mThanks for using Colour::Clock! Have a good time!\033[0m" end
 end
 
@@ -142,17 +49,16 @@ module Ruby2D
 	def b() self.color.b end
 	def random_color(*color)
 		opacity = self.opacity
-		unless color.empty? then self.color = color.sample else self.color = 'random' end
+		self.color = color.empty? ? 'random' : color.sample
 		self.opacity = opacity
 	end
 end
 
 def main
-	static = -> (size, z=-5) do
+	static = -> (size, z=-5) {
 		Image.new(path: ['crystals/hoverstars.png', 'crystals/hoverstars1.png', 'crystals/hoverstars2.png', 'crystals/hoverstars3.png', 'crystals/hoverstars4.png',
 						'crystals/hoverstars5.png', 'crystals/hoverstars6.png', 'crystals/hoverstars7.png', 'crystals/hoverstars8.png',
-						'crystals/hoverstars9.png'].sample, x: rand(0..$width), y: rand(0..$height), width: size, height: size, z: z)
-	end
+						'crystals/hoverstars9.png'].sample, x: rand(0..$width), y: rand(0..$height), width: size, height: size, z: z) }
 	magic = -> (z=-15, size=rand(1..2)) do Square.new x: rand(0..$width), y: rand(0..$height), z: z, color: %w(yellow white #6ba3ff).sample, size: size end
 	generate = lambda { sq = Square.new x: rand(0..$width), y: rand(0..$height + 1000), z: -10, color: 'white', size: rand($height/10..$width/10)
 				sq.opacity = rand 0.1..0.3 ; sq }
@@ -206,7 +112,7 @@ def main
 	customtext2drag = false
 
 	spacecrafts, fires, firepixels, comets, sparkles = [], {}, {}, {}, []
-	crystals = {}
+	crystals = []
 	Thread.new {
 		for temp in 0..($width/35)
 			tempsize = rand(30..40)
@@ -241,11 +147,9 @@ def main
 						'crystals/fireball3.png', 'crystals/fireball4.png',
 						'crystals/fireball5.png', 'crystals/fireball6.png'].sample, x: rand(0..$width), y: rand(0..$width), z: -15)
 	end
-
-	planets = {}
 	$planets.times do |temp|
 		size = rand(10..30)
-		planets[temp] = planet = Image.new(path: ['crystals/planet1.png', 'crystals/planet2.png', 'crystals/planet3.png',
+		planet = Image.new(path: ['crystals/planet1.png', 'crystals/planet2.png', 'crystals/planet3.png',
 				'crystals/planet4.png', 'crystals/planet5.png', 'crystals/planet6.png'].sample,
 				width: size, height: size, x: rand(0..$width), y: rand($height/2..$height), z: -20) ; planet.opacity = rand(0.5..1)
 	end
@@ -255,10 +159,10 @@ def main
  						x: rand($width..$width + 700), y: rand(-700..0),
 						z: -15, width: size, height: size, color: %w(yellow white #6ba3ff #ff6850).sample)
 	end
-	particles, particleswitch, randomparticles, hoverparticles1, hoverparticles2, hoverparticles3 = {}, true, {}, {}, {}, {}
-	hoverparticles4, hoverparticles5, hoverparticles6 = {}, {}, {}
-	magicparticles1, magicparticles2, magicparticles3, magicparticles4 = {}, {}, {}, {}
-	magicparticles5, magicparticles6, magicparticles7, magicparticles8, flakehash, flakeparticleshash = {}, {}, {}, {}, {}, {}
+	particles, particleswitch, randomparticles, hoverparticles1, hoverparticles2, hoverparticles3 = {}, true, [], [], [], []
+	hoverparticles4, hoverparticles5, hoverparticles6 = [], [], []
+	magicparticles1, magicparticles2, magicparticles3, magicparticles4 = [], [], [], []
+	magicparticles5, magicparticles6, magicparticles7, magicparticles8, flakehash, flakeparticleshash = [], [], [], [], {}, {}
 
 	$particle.times do |temp| particles[temp] = generate.call end
 
@@ -266,7 +170,7 @@ def main
 	gradient.opacity = 0.2
 	snow = nil
 	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
-	($width/35).times do |temp| sparkles.push(static.call(4, -12)) end
+	($width/35).times do |temp| sparkles.push(magic.call(-12, 1)) end
 	moon = Image.new path: 'crystals/moon.png', x: 0, y: $height - 80, width: 100, height: 100 , z: -20
 	fireball = {}
 	150.times do |temp| randomparticles[temp] = static.call(rand(4..8)) end
@@ -275,7 +179,7 @@ def main
 		flakehash[temp] = c = Image.new(path: ['crystals/flake1.png', 'crystals/flake2.png'].sample, x: rand(0..$width),
 								y: rand(-1000..0), z: -10, width: size, height: size) ;  c.opacity = rand(0.3..0.7)
 	end
-	($flakes * 5).times do |temp| flakeparticleshash[temp] = magic.call(1) end
+	($flakes * 3).times do |temp| flakeparticleshash[temp] = magic.call(1) end
 	$hoverparticles.times do |temp|
 		tempsize = rand(8..15)
 		hoverparticles1[temp] = static.call(tempsize, 2)
@@ -383,9 +287,7 @@ def main
 
 	on :mouse_up do |e| customtext1drag, customtext2drag = false, false end
 	on :mouse_scroll do |e|
-		if e.delta_y == -1
-			bg.opacity += 0.2 if bg.opacity <= 1
-		end
+		bg.opacity += 0.2 if e.delta_y == -1 and bg.opacity <= 1
 		if e.delta_y == 1
 			bg.opacity -= 0.2 if bg.opacity >= 0
 			particles.values.each do |val| val.opacity = 0 end
@@ -454,7 +356,7 @@ def main
 
 		Thread.new { system('ruby', 'Subwindows/about.rb') } if ['a', 'i'].include?(k.key)
 	end
-
+	sparkles.each do |val| val.color = 'white' end
 	air_direction = [-1, 0, 1].sample
 	update do
 		i += 1
@@ -463,11 +365,12 @@ def main
 			val.b += 0.08 if val.b <= 1
 			val.g -= 0.1 if val.g <= 1
 			val.opacity -= 0.025
+			if val.opacity <= 0.5 then val.random_color 'white' end
 			val.x += air_direction
 		end
 		firepixels.values.each do |val|
 			val.x += air_direction * 1.5
-			val.opacity -= 0.01
+			val.opacity -= 0.005
 			val.random_color
 		end
 		if movealpha then customemove.opacity += 0.03 if customemove.opacity < 1 else customemove.opacity -= 0.05 if customemove.opacity > 0 end
@@ -475,8 +378,10 @@ def main
 		if spaceshiphover.y > 0 then spaceshiphover.y -= 10 else spaceshiphover = nil end if spaceshiphover
 		ampm.text = t.call('%r')[-3..-1]
 		if bg.opacity < 1
-			for val in flakeparticleshash.values do val.x, val.y = rand(0..$width), rand(0..$height) ; val.random_color end
-			crystals.values.each do |val|
+			for val in flakeparticleshash.values.first(30) do
+				val.x, val.y = rand(0..$width), rand(0..$height) ; val.random_color('white', 'yellow')
+			end
+			crystals.each do |val|
 				samplespark = sparkles.sample
 				samplespark.x = rand(val.x..val.x + val.width)
 				samplespark.y = rand(val.y..val.y + val.height)
@@ -518,11 +423,7 @@ def main
 					firepixels[temp].opacity = 1
 					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-				if c.y < -c.height
-					c.y = rand($height..$height + 1000)
-					c.x = rand(0..$width)
-					c.color = 'white'
-				end
+				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000) end
 				engine += 1
 			end
 			for c in spacecrafts[spacecrafts.size/3 + 1..spacecrafts.size/2]
@@ -534,10 +435,7 @@ def main
 					fireball[temp].color = '#00ff00'
 					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-				if c.y < -c.height
-					c.y = rand($height..$height + 1000)
-					c.x = rand(0..$width)
-					c.color = 'white'
+				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000)
 				end
 				engine += 1
 			end
@@ -551,10 +449,7 @@ def main
 					fireball[temp].color = '#00ff00'
 					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-				if c.y < -c.height
-					c.y = rand($height..$height + 1000)
-					c.x = rand(0..$width)
-					c.color = 'white'
+				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000)
 				end
 				engine += 1
 			end
@@ -626,22 +521,20 @@ def main
 		greetlabel1.x -= greetflag if greetlabel1.x > -greetlabel1.width and greetlabel1.x < $width + greetlabel1.width
 		greetlabel1.opacity -= 0.02 if greetlabel1.opacity >= 0
 
-		for val in magicparticles1.values  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles2.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles3.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles4.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles5.values  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles6.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles7.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles8.values do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles1  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles2 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles3 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles4 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles5  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles6 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles7 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		for val in magicparticles8 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
 		$hoverparticles.times do |key|
 			hoverparticles1[key].y -= 1 if hoverparticles1[key].y > -20
 			hoverparticles4[key].y += 1 if hoverparticles4[key].y > -20
-
 			hoverparticles2[key].y += 1 if hoverparticles2[key].y < $height + 5
 
 			hoverparticles3[key].y += 1 if hoverparticles3[key].y < $height + 5
-
 			hoverparticles3[key].x += 1 if hoverparticles3[key].x < $width + 5
 			hoverparticles6[key].x += 1 if hoverparticles6[key].x < $width + 5
 
@@ -655,12 +548,12 @@ def main
 			hoverparticles5[key].opacity -= 0.03
 			hoverparticles6[key].opacity -= 0.03
 
-			hoverparticles1[key].b -= 0.025 if hoverparticles1[key].b > 0.5
-			hoverparticles1[key].g -= 0.01
-			hoverparticles2[key].b -= 0.025
-			hoverparticles2[key].g -= 0.01
-			hoverparticles3[key].b -= 0.02
-			hoverparticles3[key].g -= 0.01
+			hoverparticles1[key].b -= 0.015
+			hoverparticles1[key].g -= 0.015
+			hoverparticles2[key].b -= 0.015
+			hoverparticles2[key].g -= 0.015
+			hoverparticles3[key].b -= 0.015
+			hoverparticles3[key].g -= 0.015
 		end
 		$magicparticles.times do |key|
 			magicparticles1[key].x -= 1
@@ -679,9 +572,8 @@ def main
 		timelabel.text = t.call(timeformat)[0..-8]
 		daylabel.text = t.call('%A')
 		datelabel.text = dateformat
-		randomparticles.values.sample.opacity = [0, 1].sample
+		randomparticles.sample.opacity = [0, 1].sample
 		val.x = 0 if val.x > $width
-
 		for val in magic1
 			unless val.y <= -val.y
 				val.y -= 4
