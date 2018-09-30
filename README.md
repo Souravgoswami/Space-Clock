@@ -15,12 +15,15 @@ Yet another beautiful and configurable digital clock written in ruby.
           chmod 777 main.rb
 
 
-**Note:**
+**Note 1:**
   This clock will consume a good amount of processing power. Not a big amount of RAM though. A good CPU is recommended
   for the default setting. Or else you can optimize it using the
   
       config.conf
 file. The file can be found at the Space::Clock directory. Read the file for help regarding configuration - this is easy.
+
+**Note 2:**
+  There's a lot of violation of physics, but I just did all that just because it looks cool! One example is the flames from the   spacecrafts shouldn't be there in the empty space. But without those flames, the looks would be boring, and there will be       nothing much to do...
 
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
 
