@@ -23,7 +23,7 @@ Yet another beautiful and configurable digital clock written in ruby.
 file. The file can be found at the Space::Clock directory. Read the file for help regarding configuration - this is easy.
 
 **Note 2:**
-  There's a lot of violation of physics, but I just did all that just because it looks cool! One example is the flames from the   spacecrafts shouldn't be there in the empty space. But without those flames, the looks would be boring, and there will be       nothing much to do...
+  There's a lot of **violation of physics**, but I just did all that just because it looks cool! One example is the flames from the   spacecrafts shouldn't be there in the empty space. But without those flames, the looks would be boring, and there will be       nothing much to do...
 
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
 
