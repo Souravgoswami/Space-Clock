@@ -90,7 +90,6 @@ def main
 	dateline = Line.new x1: datelabel.x + datelabel.width/2, x2: datelabel.x + datelabel.width/2,
 			y1: datelabel.y + datelabel.height - 20, y2: datelabel.y + datelabel.height - 20, width: 3
 	datelineparam = datelabel.x + datelabel.width/2
-	dateformat = t.call($defaultdateformat)
 	dateformatswitch = 1
 
 	greetlabel = Text.new font: 'mage/MateSC-Regular.ttf', text: "Welcome to Space Clock", size: 50
@@ -167,8 +166,7 @@ def main
 	gradient = Rectangle.new color: %w(black black purple fuchsia), width: $width, height: $height, z: -25
 	gradient.opacity = 0.2
 	snow = nil
-	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
-	($width/35).times do sparkles.push magic.call(-12, 1) end
+
 	moon = Image.new path: 'crystals/moon.png', x: 0, y: $height - 80, width: 100, height: 100 , z: -20
 	150.times do |temp| randomparticles[temp] = static.call(rand(4..8)) end
 	$flakes.times do |temp|
@@ -176,7 +174,12 @@ def main
 		flakehash << c = Image.new(path: ['crystals/flake1.png', 'crystals/flake2.png'].sample, x: rand(0..$width),
 								y: rand(-1000..0), z: -10, width: size, height: size) ;  c.opacity = rand(0.3..0.7)
 	end
+
+	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
+	($width/35).times do sparkles.push magic.call(-12, 1) end
 	($flakes * 3).times do |temp| flakeparticleshash << magic.call(1) end
+	$staticmagic.times do static.call(rand(4..8)) end
+
 	$hoverparticles.times do |temp|
 		tempsize = rand(8..15)
 		hoverparticles1[temp] = static.call tempsize, 2
@@ -198,7 +201,7 @@ def main
 		magic1 << magic.call(-5) ; magic2 << magic.call(-5) ; magic3 << magic.call(-5)
 		magic4 << magic.call(-5) ; magic5 << magic.call(-5) ; magic6 << magic.call(-5)
  	end
-	$staticmagic.times do static.call(rand(4..8)) end
+
 	($spaceships * rand(10..12)).times do |temp|
 		tempsize = rand(10..19)
 		firepixels << magic.call(-15)
@@ -209,7 +212,7 @@ def main
 	light = Image.new path: 'crystals/light.png', width: tempsize, height: tempsize, x: rand(100..$width - 100), y: 20, z: -20
 	mercury, xflag = Image.new(path: ['crystals/planet3.png', 'crystals/planet5.png'].sample, width: 1, height: 1, x: light.x - light.width/2,
 							y: light.y + light.height/2 - 5, z: -21, color: 'black'), 0
-	i, spaceshiphover = 0, nil
+	i, spaceshiphover, tempsize = 0, nil, nil
 	timelinebool, datelinebool, daylinebool = false, false, false
 
 	on :mouse_move do |e|
@@ -253,8 +256,8 @@ def main
 			elsif customtext2.contains?(e.x, e.y) then customtext2drag = true
 			elsif datelabel.contains?(e.x, e.y)
 				dateformatswitch += 1
-				if dateformatswitch % 2 == 0 then dateformat = t.call('%D')
-					else dateformat = t.call('%d/%m/%y') end
+				if dateformatswitch % 2 == 0 then $defaultdateformat = '%D'
+					else $defaultdateformat = '%d/%m/%y' end
 			elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y)
 				timelabelswitch += 1
 				if timelabelswitch % 2 == 0 then timeformat, ampm.opacity = '%I:%M:%S:%N', 1
@@ -352,6 +355,12 @@ def main
 	air_direction = [-1, 0, 1].sample
 	update do
 		i += 1
+
+		timelabel.text = t.call(timeformat)[0..-8]
+		daylabel.text = t.call('%A')
+		datelabel.text = t.call($defaultdateformat)
+		ampm.text = t.call('%r')[-3..-1]
+
 		fireball.each do |val|
 			val.r += 0.15 if val.r <= 1
 			val.b += 0.08 if val.b <= 1
@@ -368,7 +377,6 @@ def main
 		if movealpha then customemove.opacity += 0.03 if customemove.opacity < 1 else customemove.opacity -= 0.05 if customemove.opacity > 0 end
 		air_direction = [-1, 0, 1].sample if i % 600 == 0
 		if spaceshiphover.y > 0 then spaceshiphover.y -= 10 else spaceshiphover = nil end if spaceshiphover
-		ampm.text = t.call('%r')[-3..-1]
 		if bg.opacity < 1
 			for val in flakeparticleshash.first(30) do
 				val.x, val.y = rand(0..$width), rand(0..$height) ; val.random_color('white', 'yellow')
@@ -561,9 +569,7 @@ def main
 			magicparticles7[key].y -= 1
 			magicparticles8[key].y += 1
 		end
-		timelabel.text = t.call(timeformat)[0..-8]
-		daylabel.text = t.call('%A')
-		datelabel.text = dateformat
+
 		randomparticles.sample.opacity = [0, 1].sample
 		val.x = 0 if val.x > $width
 		for val in magic1
