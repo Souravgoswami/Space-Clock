@@ -2,7 +2,7 @@
 # Written by Sourav Goswami thanks to Ruby2D.
 
 begin
-	require_relative 'ruby2d/ruby2d.rb'
+	require 'ruby2d'
 	file = File.open('config.conf')
 	$info = file.readlines
 	res = $info[0][$info[0].index('=') + 1 .. - 1]
