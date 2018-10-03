@@ -30,4 +30,6 @@ file. The file can be found at the Space::Clock directory. Read the file for hel
 **For bugs report (except regarding Ruby2D installation) please contact:**
   sg97@protonmail.com
   
+For the lite version go to: https://github.com/Souravgoswami/Space-Clock-Lite/
+  
 If you like this project, please share if you can! Thank you very much!
