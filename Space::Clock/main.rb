@@ -11,8 +11,7 @@ begin
 	$width, $height= res[0..res.index('x') - 1].to_i, res[res.index('x') + 1..-1].to_i
 	$defaulttimeformat = $info[3][$info[3].index('=') + 1 .. -1].chomp == '24'
 	$defaultdateformat = $info[4][$info[4].index('=') + 1 .. - 1].chomp
-	$defaultcolours = $info[5][$info[5].index('=') + 1 .. -1].chomp
-	$defaultcolours = $defaultcolours.split(',')
+	$defaultcolours = $info[5][$info[5].index('=') + 1 .. -1].chomp.split(',')
 	$spaceships = $info[6][$info[6].index('=') + 1..-1].to_i
 	$staticmagic = $info[7][$info[7].index('=') + 1..-1].to_i
 	$planets = $info[8][$info[8].index('=') + 1..-1].to_i
@@ -28,25 +27,25 @@ begin
 	$customsize2 = $info[18][$info[18].index('=') + 1..-1].to_i
 	$customfont = $info[19][$info[19].index('=') + 1..-1].chomp
 	$customfontcolour = $info[20][$info[20].index('=') + 1..-1].chomp
+	$start_time = Time.new.strftime('%s').to_i
 rescue LoadError
-	STDERR.puts "Uh Oh, Ruby2D is not installed"
+	warn "Uh Oh, Ruby2D is not installed. Please read the instruction.txt file in this directory"
 	abort
 rescue NoMethodError, Errno::ENOENT
-	STDERR.puts "Generating the config.conf file with default values."
+	warn "Generating the config.conf file with default values."
 	Thread.new { system('ruby', 'Subwindows/conf_generator.rb') }
 	sleep 1
 	Thread.new { system('ruby', 'main.rb') }
-ensure
-	at_exit do puts "\033[1;34mThanks for using Colour::Clock! Have a good time!\033[0m" end
 end
+
+END { run_for = Time.new.strftime('%s').to_i - $start_time
+	"Thanks for using Space::Clock for #{run_for} #{run_for == 1 ? "second" : "seconds"}.\nHave a good day...".chars do |c|
+	print "\033[38;5;#{rand(160..184)}m#{c}" end }
 
 module Ruby2D
 	def r=(val) self.color = [val, self.color.g, self.color.b, self.opacity] end
 	def g=(val) self.color = [self.color.r, val, self.color.b, self.opacity] end
 	def b=(val) self.color = [self.color.r, self.color.g, val, self.opacity] end
-	def r() self.color.r end
-	def g() self.color.g end
-	def b() self.color.b end
 	def random_color(*color)
 		opacity = self.opacity
 		self.color = color.empty? ? 'random' : color.sample
@@ -62,11 +61,10 @@ def main
 	magic = -> (z=-15, size=rand(1..2)) do Square.new x: rand(0..$width), y: rand(0..$height), z: z, color: %w(yellow white #6ba3ff).sample, size: size end
 	generate = lambda { sq = Square.new x: rand(0..$width), y: rand(0..$height + 1000), z: -10, color: 'white', size: rand($height/10..$width/10)
 				sq.opacity = rand 0.1..0.3 ; sq }
+	t = proc { |format| Time.new.strftime(format) }
 
 	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen
-	t = proc { |format| Time.new.strftime(format) }
-	colours = $defaultcolours
-	bg = Rectangle.new width: $width, height: $height, color: colours, z: -10
+	bg = Rectangle.new width: $width, height: $height, color: $defaultcolours, z: -10
 
 	timelabel = Text.new font: 'mage/arima.otf', text: t.call('%T:%N')[0..-8], size: $fontsize + 20
 	timelabel.x, timelabel.y = $width/2 - timelabel.width/2, $height/2 - timelabel.height/2
@@ -90,6 +88,7 @@ def main
 	dateline = Line.new x1: datelabel.x + datelabel.width/2, x2: datelabel.x + datelabel.width/2,
 			y1: datelabel.y + datelabel.height - 20, y2: datelabel.y + datelabel.height - 20, width: 3
 	datelineparam = datelabel.x + datelabel.width/2
+	dateformat = t.call($defaultdateformat)
 	dateformatswitch = 1
 
 	greetlabel = Text.new font: 'mage/MateSC-Regular.ttf', text: "Welcome to Space Clock", size: 50
@@ -110,12 +109,14 @@ def main
 	customtext2.x, customtext2.y = $width/2 - customtext2.width/2, greetlabel1.y + greetlabel1.size
 	customtext2drag = false
 
-	spacecrafts, fires, fireball, firepixels, comets, sparkles, crystals = [], [], [], [], [], [], []
+	spacecrafts, fires, fireball, firepixels, comets, sparkles, crystals, planets = [], [], [], [], [], [], [], []
 	particles, particleswitch, randomparticles, hoverparticles1, hoverparticles2, hoverparticles3 = [], true, [], [], [], []
 	hoverparticles4, hoverparticles5, hoverparticles6, flakehash, flakeparticleshash = [], [], [], [], []
 	magicparticles1, magicparticles2, magicparticles3, magicparticles4 = [], [], [], []
 	magicparticles5, magicparticles6, magicparticles7, magicparticles8  = [], [], [], []
 	magic1, magic2, magic3, magic4, magic5, magic6 = [], [], [], [], [], []
+	i, spaceshiphover = 0, nil
+	timelinebool, datelinebool, daylinebool = false, false, false
 
 	Thread.new {
 		for temp in 0..($width/35)
@@ -129,9 +130,8 @@ def main
 		end
 		($width/150).times do
 			tempsize = rand(14..16)
-			specialstar = Image.new path: ['crystals/specialstar.png', 'crystals/specialstar2.png', 'crystals/specialstar3.png'].sample,
-					x: rand(0..$width), z: -[15,16].sample, width: tempsize, height: tempsize
-			specialstar.y = $height - 10 - specialstar.height + tempsize/3
+			Image.new path: ['crystals/specialstar.png', 'crystals/specialstar2.png', 'crystals/specialstar3.png'].sample,
+					x: rand(0..$width), y: $height - tempsize * 1.3, z: -[15,16].sample, width: tempsize, height: tempsize
 		end
 		Image.new path: 'crystals/galaxy2.png', y: $height - 150, z: -25, x: rand(0..$width - 50)
 		Image.new path: 'crystals/galaxy3.png', y: 50, z: -25, x: rand(0..$width - 50), width: $height/10, height: $height/10
@@ -151,9 +151,9 @@ def main
 	end
 	$planets.times do |temp|
 		size = rand(10..30)
-		planet = Image.new(path: ['crystals/planet1.png', 'crystals/planet2.png', 'crystals/planet3.png',
+		planets << p = Image.new(path: ['crystals/planet1.png', 'crystals/planet2.png', 'crystals/planet3.png',
 				'crystals/planet4.png', 'crystals/planet5.png', 'crystals/planet6.png'].sample,
-				width: size, height: size, x: rand(0..$width), y: rand($height/2..$height), z: -20) ; planet.opacity = rand(0.5..1)
+				width: size, height: size, x: rand(0..$width), y: rand($height/2..$height), z: -20) ; p.opacity = rand(0.5..1)
 	end
 	$comets.times do |temp|
 		size = rand(2..10)
@@ -166,7 +166,8 @@ def main
 	gradient = Rectangle.new color: %w(black black purple fuchsia), width: $width, height: $height, z: -25
 	gradient.opacity = 0.2
 	snow = nil
-
+	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
+	($width/35).times do sparkles.push magic.call(-12, 1) end
 	moon = Image.new path: 'crystals/moon.png', x: 0, y: $height - 80, width: 100, height: 100 , z: -20
 	150.times do |temp| randomparticles[temp] = static.call(rand(4..8)) end
 	$flakes.times do |temp|
@@ -174,19 +175,11 @@ def main
 		flakehash << c = Image.new(path: ['crystals/flake1.png', 'crystals/flake2.png'].sample, x: rand(0..$width),
 								y: rand(-1000..0), z: -10, width: size, height: size) ;  c.opacity = rand(0.3..0.7)
 	end
-
-	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
-	($width/35).times do sparkles.push magic.call(-12, 1) end
 	($flakes * 3).times do |temp| flakeparticleshash << magic.call(1) end
-	$staticmagic.times do static.call(rand(4..8)) end
-
 	$hoverparticles.times do |temp|
-		tempsize = rand(8..15)
-		hoverparticles1[temp] = static.call tempsize, 2
-		tempsize = rand(8..15)
-		hoverparticles2[temp] = static.call tempsize, 2
-		tempsize = rand(8..15)
-		hoverparticles3[temp] = static.call tempsize, 2
+		tempsize = rand(8..15) ; hoverparticles1[temp] = static.call tempsize, 2
+		tempsize = rand(8..15) ; hoverparticles2[temp] = static.call tempsize, 2
+		tempsize = rand(8..15) ; hoverparticles3[temp] = static.call tempsize, 2
 		hoverparticles4[temp], hoverparticles5[temp], hoverparticles6[temp] = magic.call(2), magic.call(2), magic.call(2)
 	end
 
@@ -201,25 +194,24 @@ def main
 		magic1 << magic.call(-5) ; magic2 << magic.call(-5) ; magic3 << magic.call(-5)
 		magic4 << magic.call(-5) ; magic5 << magic.call(-5) ; magic6 << magic.call(-5)
  	end
-
+	$staticmagic.times do static.call(rand(4..8)) end
 	($spaceships * rand(10..12)).times do |temp|
 		tempsize = rand(10..19)
 		firepixels << magic.call(-15)
-		fireball[temp] = img = Image.new path: 'crystals/light.png', x: rand(0..$width), z: -15, height: tempsize, width: tempsize ; img.opacity = 0
+		fireball << img = Image.new(path: 'crystals/light.png', x: rand(0..$width), y: rand(0..$height),
+			z: -15, height: tempsize, width: tempsize) ; img.opacity = 0
 	end
 
 	tempsize = rand(80..100)
 	light = Image.new path: 'crystals/light.png', width: tempsize, height: tempsize, x: rand(100..$width - 100), y: 20, z: -20
 	mercury, xflag = Image.new(path: ['crystals/planet3.png', 'crystals/planet5.png'].sample, width: 1, height: 1, x: light.x - light.width/2,
 							y: light.y + light.height/2 - 5, z: -21, color: 'black'), 0
-	i, spaceshiphover, tempsize = 0, nil, nil
-	timelinebool, datelinebool, daylinebool = false, false, false
 
 	on :mouse_move do |e|
 		if timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y) then timelinebool = true else timelinebool = false end
 		if datelabel.contains?(e.x, e.y) then datelinebool = true else datelinebool = false end
 		if daylabel.contains?(e.x, e.y) then daylinebool = true else daylinebool = false end
-		for val in flakehash do val.opacity -= 0.1 if val.contains?(e.x, e.y) end
+		for val in flakehash do val.opacity = 0 if val.contains?(e.x, e.y) end
 		timelinebool, datelinebool, daylinebool = false, false, false if customtext1.contains?(e.x, e.y) or customtext2.contains?(e.x, e.y)
 		if customtext1.contains?(e.x, e.y) and !customtext1.text.empty?
 				customtext1.x, customtext1.y = e.x - customtext1.width/2, e.y - customtext1.height/2 if customtext1drag
@@ -243,12 +235,7 @@ def main
 		hoverparticles1[key].color = hoverparticles2[key].color = hoverparticles3[key].color = 'white'
 		hoverparticles4[key].color = hoverparticles5[key].color = hoverparticles6[key].color = 'white'
 		for val in particles do val.opacity = 0 if val.contains?(e.x, e.y) end
-		for val in spacecrafts do
-			if val.contains?(e.x, e.y)
-				spaceshiphover = val
-				break
-			end
-		end
+		for val in spacecrafts do if val.contains?(e.x, e.y) then spaceshiphover = val ; break end end
 	end
 	on :mouse_down do |e|
 		if e.button == :left
@@ -256,8 +243,8 @@ def main
 			elsif customtext2.contains?(e.x, e.y) then customtext2drag = true
 			elsif datelabel.contains?(e.x, e.y)
 				dateformatswitch += 1
-				if dateformatswitch % 2 == 0 then $defaultdateformat = '%D'
-					else $defaultdateformat = '%d/%m/%y' end
+				if dateformatswitch % 2 == 0 then dateformat = t.call('%D')
+					else dateformat = t.call('%d/%m/%y') end
 			elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y)
 				timelabelswitch += 1
 				if timelabelswitch % 2 == 0 then timeformat, ampm.opacity = '%I:%M:%S:%N', 1
@@ -280,7 +267,7 @@ def main
 				greetlabel1.x, greetlabel1.opacity = $width/2 - greetlabel.width/2, 1
 			end
 		else
-			bg.color = %w(green blue fuchsia purple teal #ff50a6 blue #00e3d5 #3ce3d4).sample(4)
+			bg.random_color %w(green blue fuchsia purple teal #ff50a6 blue #00e3d5 #3ce3d4).sample(4)
 		end
 	end
 
@@ -314,7 +301,7 @@ def main
 				greetlabel.opacity = greetlabel1.opacity = 1.5
 			end
 		end
-		Thread.new { system('ruby', 'Subwindows/properties.rb', "#{colours}") } if 'cs'.include?(k.key)
+		Thread.new { system('ruby', 'Subwindows/properties.rb', "#{$defaultcolours}") } if 'cs'.include?(k.key)
 		if k.key == 'up'
 			bg.opacity += 0.2 if bg.opacity < 1
 			particles.each do |val| val.opacity = 0 end
@@ -341,66 +328,43 @@ def main
 		Thread.new { system('ruby', 'Subwindows/about.rb') } if ['a', 'i'].include?(k.key)
 		if ['left alt', 'right alt', 'right ctrl', 'left ctrl', 'tab'].include?(k.key)
 			for val in spacecrafts do val.x, val.y = rand(0..$width), rand(0..$height + 1000) end
-			for val in planets.values do val.x, val.y = rand(0..$width), rand($height/2..$height) end
+			for val in planets do val.x, val.y = rand(0..$width), rand($height/2..$height) end
 			light.x, light.y = rand(100..$width - 100), 20
 			mercury.x, mercury.y = light.x - light.width/2, light.y + light.height/2
 			mercury.width, mercury.height = 1, 1
 			movealpha = false
 			customtext1.x, customtext1.y = $width/2 - customtext1.width/2, greetlabel.y - customtext1.height
 			customtext2.x, customtext2.y = $width/2 - customtext2.width/2, greetlabel1.y + greetlabel1.height
-			bg.random_color colours
+			bg.random_color $defaultcolours
 		end
 	end
 	sparkles.each do |val| val.color = 'white' end
 	air_direction = [-1, 0, 1].sample
 	update do
 		i += 1
-
-		timelabel.text = t.call(timeformat)[0..-8]
-		daylabel.text = t.call('%A')
-		datelabel.text = t.call($defaultdateformat)
-		ampm.text = t.call('%r')[-3..-1]
-
-		fireball.each do |val|
-			val.r += 0.15 if val.r <= 1
-			val.b += 0.08 if val.b <= 1
-			val.g -= 0.1 if val.g <= 1
-			val.opacity -= 0.025
-			if val.opacity <= 0.5 then val.random_color 'white' end
-			val.x += air_direction
-		end
-		firepixels.each do |val|
-			val.x += air_direction * 1.5
-			val.opacity -= 0.005
-			val.random_color
-		end
 		if movealpha then customemove.opacity += 0.03 if customemove.opacity < 1 else customemove.opacity -= 0.05 if customemove.opacity > 0 end
 		air_direction = [-1, 0, 1].sample if i % 600 == 0
 		if spaceshiphover.y > 0 then spaceshiphover.y -= 10 else spaceshiphover = nil end if spaceshiphover
+		ampm.text = t.call('%r')[-3..-1]
 		if bg.opacity < 1
 			for val in flakeparticleshash.first(30) do
 				val.x, val.y = rand(0..$width), rand(0..$height) ; val.random_color('white', 'yellow')
 			end
 			crystals.each do |val|
 				samplespark = sparkles.sample
-				samplespark.x = rand(val.x..val.x + val.width)
-				samplespark.y = rand(val.y..val.y + val.height)
+				samplespark.x, samplespark.y = rand(val.x..val.x + val.width), rand(val.y..val.y + val.height)
 			end
 			if xflag != 1
-				mercury.width -= 0.1
-				mercury.height -= 0.1
+				mercury.width -= 0.1 ; mercury.height -= 0.1
 			else
-				mercury.width += 0.1
-				mercury.height += 0.1
+				mercury.width += 0.1 ; mercury.height += 0.1
 			end
-			if mercury.x > light.x + light.width
-				xflag = -1
-				mercury.z = -20
-			elsif mercury.x < light.x then xflag, mercury.z = 1, -21
+			if mercury.x > light.x + light.width then xflag, mercury.z = -1, -20
+				elsif mercury.x < light.x then xflag, mercury.z = 1, -21
 			end
 			mercury.x += xflag
 			if (mercury.x >= light.x + light.width/3 and mercury.x <= light.x + light.width/2) and xflag == -1 then light.b = light.g = rand(0.6..1)
-			else light.b = light.g = 1
+				else light.b = light.g = 1
 			end
 			particleswitch = false
 			for val in comets
@@ -418,10 +382,8 @@ def main
 				fires[engine].x, fires[engine].y = c.x + c.width/2 + Math.sin(i) - 10, c.y + c.height + Math.cos(i)
 				temp = rand(0...fireball.length)
 					fireball[temp].opacity, fireball[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width - fireball[temp].width)
-					fireball[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-					fireball[temp].color = '#00ff00'
-					firepixels[temp].opacity = 1
-					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
+					fireball[temp].y, fireball[temp].color = rand(fires[engine].y..fires[engine].y + fires[engine].height), '#00ff00'
+					firepixels[temp].opacity, firepixels[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
 				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000) end
 				engine += 1
@@ -431,9 +393,8 @@ def main
 				fires[engine].x, fires[engine].y = c.x + c.width/2 + Math.sin(i) - 10, c.y + c.height + Math.cos(i)
 				temp = rand(0...fireball.length)
 					fireball[temp].opacity, fireball[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width - fireball[temp].width)
-					fireball[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-					fireball[temp].color = '#00ff00'
-					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
+					fireball[temp].y, fireball[temp].color = rand(fires[engine].y..fires[engine].y + fires[engine].height), '#00ff00'
+					firepixels[temp].opacity, firepixels[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
 				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000)
 				end
@@ -445,13 +406,25 @@ def main
 				fires[engine].x, fires[engine].y = c.x + c.width/2 + Math.sin(i) - 10, c.y + c.height + Math.cos(i)
 				temp = rand(0...fireball.length)
 					fireball[temp].opacity, fireball[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width - fireball[temp].width)
-					fireball[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
-					fireball[temp].color = '#00ff00'
-					firepixels[temp].x = rand(fires[engine].x..fires[engine].x + fires[engine].width)
+					fireball[temp].y, fireball[temp].color = rand(fires[engine].y..fires[engine].y + fires[engine].height), '#00ff00'
+					firepixels[temp].opacity, firepixels[temp].x = 1, rand(fires[engine].x..fires[engine].x + fires[engine].width)
 					firepixels[temp].y = rand(fires[engine].y..fires[engine].y + fires[engine].height)
 				if c.y < -c.height then c.x, c.y = rand(0..$width), rand($height..$height + 1000)
 				end
 				engine += 1
+			end
+			fireball.each do |val|
+				val.r += 0.15 if val.r <= 1
+				val.b += 0.08 if val.b <= 1
+				val.g -= 0.1 if val.g <= 1
+				val.opacity -= 0.025
+				if val.opacity <= 0.5 then val.color = 'white' end
+				val.x += air_direction
+			end
+			firepixels.each do |val|
+				val.x += air_direction * 1.5
+				val.opacity -= 0.005
+				val.random_color
 			end
 		else
 			particleswitch = true
@@ -464,7 +437,7 @@ def main
 					psample.random_color('white')
 				else
 					val.opacity -= 0.005
-					val.x, val.y, val.opacity = rand(0..$width), rand(-1000..0), rand(0.3..0.7) if i % 360 == 0
+					val.x, val.y, val.opacity = rand(0..$width), rand(-1000..0), rand(0.3..0.7) if i % 420 == 0
 					size = rand(25..35)
 					val.width = val.height = size
 				end
@@ -521,14 +494,16 @@ def main
 		greetlabel1.x -= greetflag if greetlabel1.x > -greetlabel1.width and greetlabel1.x < $width + greetlabel1.width
 		greetlabel1.opacity -= 0.02 if greetlabel1.opacity >= 0
 
-		for val in magicparticles1  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles2 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles3 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles4 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles5  do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles6 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles7 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
-		for val in magicparticles8 do val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height end
+		$magicparticles.times do |el|
+			val = magicparticles1[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles2[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles3[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles4[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles5[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles6[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles7[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+			val = magicparticles8[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
+		end
 		$hoverparticles.times do |key|
 			hoverparticles1[key].y -= 1 if hoverparticles1[key].y > -20
 			hoverparticles4[key].y += 1 if hoverparticles4[key].y > -20
@@ -541,37 +516,26 @@ def main
 			hoverparticles2[key].x -= 1 if hoverparticles2[key].x > -20
 			hoverparticles5[key].x -= 1 if hoverparticles5[key].x > -20
 
-			hoverparticles1[key].opacity -= 0.02
-			hoverparticles2[key].opacity -= 0.02
-			hoverparticles3[key].opacity -= 0.02
-			hoverparticles4[key].opacity -= 0.03
-			hoverparticles5[key].opacity -= 0.03
-			hoverparticles6[key].opacity -= 0.03
+			hoverparticles1[key].opacity -= 0.02 ; hoverparticles2[key].opacity -= 0.02
+			hoverparticles3[key].opacity -= 0.02 ; hoverparticles4[key].opacity -= 0.03
+			hoverparticles5[key].opacity -= 0.03 ; hoverparticles6[key].opacity -= 0.03
 
-			hoverparticles1[key].b -= 0.015
-			hoverparticles1[key].g -= 0.015
-			hoverparticles2[key].b -= 0.015
-			hoverparticles2[key].g -= 0.015
-			hoverparticles3[key].b -= 0.015
-			hoverparticles3[key].g -= 0.015
+			hoverparticles1[key].b -= 0.015 ; hoverparticles1[key].g -= 0.015
+			hoverparticles2[key].b -= 0.015 ; hoverparticles2[key].g -= 0.015
+			hoverparticles3[key].b -= 0.015 ; hoverparticles3[key].g -= 0.015
 		end
 		$magicparticles.times do |key|
-			magicparticles1[key].x -= 1
-			magicparticles1[key].y -= 1
-			magicparticles2[key].x += 1
-			magicparticles2[key].y -= 1
-			magicparticles3[key].x -= 1
-			magicparticles3[key].y += 1
-			magicparticles4[key].x += 1
-			magicparticles4[key].y += 1
-			magicparticles5[key].x -= 1
-			magicparticles6[key].x += 1
-			magicparticles7[key].y -= 1
-			magicparticles8[key].y += 1
+			magicparticles1[key].x -= 1 ; magicparticles1[key].y -= 1
+			magicparticles2[key].x += 1 ; magicparticles2[key].y -= 1
+			magicparticles3[key].x -= 1 ; magicparticles3[key].y += 1
+			magicparticles4[key].x += 1 ; magicparticles4[key].y += 1
+			magicparticles5[key].x -= 1 ; magicparticles6[key].x += 1
+			magicparticles7[key].y -= 1 ; magicparticles8[key].y += 1
 		end
-
+		timelabel.text = t.call(timeformat)[0..-8]
+		daylabel.text = t.call('%A')
+		datelabel.text = dateformat
 		randomparticles.sample.opacity = [0, 1].sample
-		val.x = 0 if val.x > $width
 		for val in magic1
 			unless val.y <= -val.y
 				val.y -= 4
