@@ -209,8 +209,8 @@ def main
 
 	on :mouse_move do |e|
 		if timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y) then timelinebool = true else timelinebool = false end
-		if datelabel.contains?(e.x, e.y) then datelinebool = true else datelinebool = false end
-		if daylabel.contains?(e.x, e.y) then daylinebool = true else daylinebool = false end
+		datelinebool = datelabel.contains?(e.x, e.y) ? true : false
+		daylinebool = daylabel.contains?(e.x, e.y) ? true : false
 		for val in flakehash do val.opacity = 0 if val.contains?(e.x, e.y) end
 		timelinebool, datelinebool, daylinebool = false, false, false if customtext1.contains?(e.x, e.y) or customtext2.contains?(e.x, e.y)
 		if customtext1.contains?(e.x, e.y) and !customtext1.text.empty?
@@ -243,8 +243,7 @@ def main
 			elsif customtext2.contains?(e.x, e.y) then customtext2drag = true
 			elsif datelabel.contains?(e.x, e.y)
 				dateformatswitch += 1
-				if dateformatswitch % 2 == 0 then dateformat = t.call('%D')
-					else dateformat = t.call('%d/%m/%y') end
+				dateformat = dateformatswitch % 2 == 0 ? dateformat = t.call('%D') : t.call('%d/%m/%y')
 			elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y)
 				timelabelswitch += 1
 				if timelabelswitch % 2 == 0 then timeformat, ampm.opacity = '%I:%M:%S:%N', 1
