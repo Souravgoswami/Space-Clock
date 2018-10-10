@@ -58,7 +58,7 @@ def main
 		Image.new(path: ['crystals/hoverstars.png', 'crystals/hoverstars1.png', 'crystals/hoverstars2.png', 'crystals/hoverstars3.png', 'crystals/hoverstars4.png',
 						'crystals/hoverstars5.png', 'crystals/hoverstars6.png', 'crystals/hoverstars7.png', 'crystals/hoverstars8.png',
 						'crystals/hoverstars9.png'].sample, x: rand(0..$width), y: rand(0..$height), width: size, height: size, z: z) }
-	magic = -> (z=-15, size=rand(1..2)) do Square.new x: rand(0..$width), y: rand(0..$height), z: z, color: %w(yellow white #6ba3ff).sample, size: size end
+	magic = -> (z=-15) do Circle.new x: rand(0..$width), y: rand(0..$height), z: z, color: %w(yellow white #6ba3ff).sample, radius: 1 end
 	generate = lambda { sq = Square.new x: rand(0..$width), y: rand(0..$height + 1000), z: -10, color: 'white', size: rand($height/10..$width/10)
 				sq.opacity = rand 0.1..0.3 ; sq }
 	t = proc { |format| Time.new.strftime(format) }
@@ -111,7 +111,7 @@ def main
 
 	spacecrafts, fires, fireball, firepixels, comets, sparkles, crystals, planets = [], [], [], [], [], [], [], []
 	particles, particleswitch, randomparticles, hoverparticles1, hoverparticles2, hoverparticles3 = [], true, [], [], [], []
-	hoverparticles4, hoverparticles5, hoverparticles6, flakehash, flakeparticleshash = [], [], [], [], []
+	flakehash, flakeparticleshash = [], []
 	magicparticles1, magicparticles2, magicparticles3, magicparticles4 = [], [], [], []
 	magicparticles5, magicparticles6, magicparticles7, magicparticles8  = [], [], [], []
 	magic1, magic2, magic3, magic4, magic5, magic6 = [], [], [], [], [], []
@@ -167,7 +167,7 @@ def main
 	gradient.opacity = 0.2
 	snow = nil
 	($width/95).times do |temp| snow = Image.new(path: 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) end
-	($width/35).times do sparkles.push magic.call(-12, 1) end
+	($width/35).times do sparkles.push magic.call(-12) end
 	moon = Image.new path: 'crystals/moon.png', x: 0, y: $height - 80, width: 100, height: 100 , z: -20
 	150.times do |temp| randomparticles[temp] = static.call(rand(4..8)) end
 	$flakes.times do |temp|
@@ -180,7 +180,6 @@ def main
 		tempsize = rand(8..15) ; hoverparticles1[temp] = static.call tempsize, 2
 		tempsize = rand(8..15) ; hoverparticles2[temp] = static.call tempsize, 2
 		tempsize = rand(8..15) ; hoverparticles3[temp] = static.call tempsize, 2
-		hoverparticles4[temp], hoverparticles5[temp], hoverparticles6[temp] = magic.call(2), magic.call(2), magic.call(2)
 	end
 
 	$magicparticles.times do |temp|
@@ -225,15 +224,10 @@ def main
 
 		key = rand(0...$hoverparticles)
 		hoverparticles1[key].opacity = hoverparticles2[key].opacity = hoverparticles3[key].opacity = rand(0.7..1)
-		hoverparticles4[key].opacity = hoverparticles5[key].opacity = hoverparticles6[key].opacity = rand(0.7..1)
 		hoverparticles1[key].x, hoverparticles1[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
 		hoverparticles2[key].x, hoverparticles2[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
 		hoverparticles3[key].x, hoverparticles3[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
-		hoverparticles4[key].x, hoverparticles4[key].y = rand(e.x - 10..e.x + 20), rand(e.y - 10..e.y + 20)
-		hoverparticles5[key].x, hoverparticles5[key].y = rand(e.x - 10..e.x + 20), rand(e.y - 10..e.y + 20)
-		hoverparticles6[key].x, hoverparticles6[key].y = rand(e.x - 10..e.x + 20), rand(e.y - 10..e.y + 20)
 		hoverparticles1[key].color = hoverparticles2[key].color = hoverparticles3[key].color = 'white'
-		hoverparticles4[key].color = hoverparticles5[key].color = hoverparticles6[key].color = 'white'
 		for val in particles do val.opacity = 0 if val.contains?(e.x, e.y) end
 		for val in spacecrafts do if val.contains?(e.x, e.y) then spaceshiphover = val ; break end end
 	end
@@ -313,13 +307,9 @@ def main
 		if ['right', 'left'].include?(k.key)
 			for key in 0...$hoverparticles
 				hoverparticles1[key].color = hoverparticles2[key].color = hoverparticles3[key].color = 'white'
-				hoverparticles4[key].color = hoverparticles5[key].color = hoverparticles6[key].color = 'white'
 				hoverparticles1[key].x, hoverparticles1[key].y = rand(0..$width), rand(0..$height)
 				hoverparticles2[key].x, hoverparticles2[key].y = rand(0..$width), rand(0..$height)
 				hoverparticles3[key].x, hoverparticles3[key].y = rand(0..$width), rand(0..$height)
-				hoverparticles4[key].x, hoverparticles4[key].y = rand(0..$width), rand(0..$height)
-				hoverparticles5[key].x, hoverparticles5[key].y = rand(0..$width), rand(0..$height)
-				hoverparticles6[key].x, hoverparticles6[key].y = rand(0..$width), rand(0..$height)
 			end
 		end
 		exit if ['escape', 'q', 'p'].include?(k.key)
@@ -431,6 +421,7 @@ def main
 				if val.y < $height - val.height/2 and (val.x > -val.height and val.x < $width) and val.opacity > 0
 					val.x += air_direction
 					val.y += 1 + air_direction.abs
+					unless air_direction == 0 then val.rotate += air_direction * 3 else val.rotate += 1 end
 					psample = flakeparticleshash.sample
 					psample.x, psample.y = rand(val.x..val.x + val.width), rand(val.y..val.y + val.height +  10)
 					psample.random_color('white')
@@ -505,20 +496,12 @@ def main
 		end
 		$hoverparticles.times do |key|
 			hoverparticles1[key].y -= 1 if hoverparticles1[key].y > -20
-			hoverparticles4[key].y += 1 if hoverparticles4[key].y > -20
 			hoverparticles2[key].y += 1 if hoverparticles2[key].y < $height + 5
-
 			hoverparticles3[key].y += 1 if hoverparticles3[key].y < $height + 5
 			hoverparticles3[key].x += 1 if hoverparticles3[key].x < $width + 5
-			hoverparticles6[key].x += 1 if hoverparticles6[key].x < $width + 5
-
 			hoverparticles2[key].x -= 1 if hoverparticles2[key].x > -20
-			hoverparticles5[key].x -= 1 if hoverparticles5[key].x > -20
 
-			hoverparticles1[key].opacity -= 0.02 ; hoverparticles2[key].opacity -= 0.02
-			hoverparticles3[key].opacity -= 0.02 ; hoverparticles4[key].opacity -= 0.03
-			hoverparticles5[key].opacity -= 0.03 ; hoverparticles6[key].opacity -= 0.03
-
+			hoverparticles1[key].opacity -= 0.02 ; hoverparticles2[key].opacity -= 0.02 ; hoverparticles3[key].opacity -= 0.02
 			hoverparticles1[key].b -= 0.015 ; hoverparticles1[key].g -= 0.015
 			hoverparticles2[key].b -= 0.015 ; hoverparticles2[key].g -= 0.015
 			hoverparticles3[key].b -= 0.015 ; hoverparticles3[key].g -= 0.015
@@ -542,7 +525,7 @@ def main
 				val.color = %w(yellow white #6ba3ff #ff6850).sample if [true, false].sample
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
-				val.color, val.size = %w(yellow white #6ba3ff).sample, rand(1..2)
+				val.color, val.radius = %w(yellow white #6ba3ff).sample, 1
 			end
 		end
 		for val in magic2
@@ -553,7 +536,6 @@ def main
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
 				val.color = %w(yellow white #6ba3ff).sample
-				val.size = rand(1..2)
 			end
 		end
 		for val in magic3
@@ -563,7 +545,7 @@ def main
 				val.color = %w(yellow white #6ba3ff #ff6850).sample if [true, false].sample
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
-				val.color, val.size = %w(yellow white #6ba3ff).sample, rand(1..2)
+				val.color = %w(yellow white #6ba3ff).sample
 			end
 		end
 		for val in magic4
@@ -573,7 +555,7 @@ def main
 				val.color = %w(yellow white #6ba3ff #ff6850).sample if [true, false].sample
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
-				val.color, val.size = %w(yellow white #6ba3ff).sample, rand(1..2)
+				val.color = %w(yellow white #6ba3ff).sample
 			end
 		end
 		for val in magic5
@@ -582,7 +564,7 @@ def main
 				val.color = %w(yellow white #6ba3ff #ff6850).sample if [true, false].sample
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
-				val.color, val.size = %w(yellow white #6ba3ff #ff6850).sample(4), rand(1..2)
+				val.color = %w(yellow white #6ba3ff #ff6850).sample
 			end
 		end
 		for val in magic6
@@ -592,7 +574,7 @@ def main
 				val.color = %w(yellow white #6ba3ff #ff6850).sample if [true, false].sample
 			else
 				val.y, val.x = rand($height..$height + 100), rand(1..$width - 1)
-				val.color, val.size = %w(yellow white #6ba3ff).sample, rand(1..2)
+				val.color = %w(yellow white #6ba3ff).sample
 			end
 		end
 		if particleswitch
