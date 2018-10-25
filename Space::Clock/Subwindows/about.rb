@@ -49,7 +49,7 @@ def main
 		cstars[temp] = Square.new x: rand(0..$width), y: rand($height - 17..$height - 1), color:  %w(yellow white #6ba3ff).sample, z: -5, size: 1
 	end
 
-	on :key_down do |k| exit! 0 if %w(escape return p q).include?(k.key) end
+	on :key_down do |k| exit 0 if %w(escape return p q).include?(k.key) end
 
 	on :mouse_move do |e|
 		for val in s do val.opacity = 0 if val.contains?(e.x, e.y) end
