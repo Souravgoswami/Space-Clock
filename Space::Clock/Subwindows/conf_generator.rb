@@ -24,6 +24,7 @@ custom text 2=
 custom text 2 size=100
 custom font path=mage/arima.otf
 custom font color=#3ce3b4
+global FPS=30
 ################################################################################
 Help:
 Change the above options according to your need.
@@ -50,6 +51,7 @@ custom text 2=Welcome!/custom text with no quotation(or the quotes will be displ
 custom text 2 size=100/custom number
 custom font path=mage/arima.otf(default), you can provide your path!
 custom font color=white/your colour, it may be a random, or a hex, or an available name. Go to Suggestion 2 for more info.
+global fps=30/your number (should not be lesser than 1)
 --------------------------------------------------------------------------------
 NOTE 1:	there should be no spaces between '='
 
@@ -59,7 +61,7 @@ NOTE 2:	Changing to an unexpected value may crash the app
 NOTE 3:	Don not append a different line before the last value - Anything before the trailing hashes (####) (above)
 	You can write anything after that. These current lines are the examples.
 
-NOTE 4:	Too high resolution or spaships, static stars, etc. will cause a
+NOTE 4:	Too high resolution, FPS, or spaships, static stars, etc. will cause a
 	slowdown. Huge values can even freeze your computer.
 
 NOTE 5: The font size of time will always be 20 pts. larger.
