@@ -27,6 +27,7 @@ begin
 	$customsize2 = $info[18][$info[18].index('=') + 1..-1].to_i
 	$customfont = $info[19][$info[19].index('=') + 1..-1].chomp
 	$customfontcolour = $info[20][$info[20].index('=') + 1..-1].chomp
+	$fps = $info[21][$info[21].index('=') + 1..-1].to_i
 	$start_time = Time.new.strftime('%s').to_i
 rescue LoadError
 	warn "Uh Oh, Ruby2D is not installed. Please read the instruction.txt file in this directory"
@@ -75,7 +76,8 @@ def main
 
 	t = proc { |format| Time.new.strftime(format) }
 
-	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen
+	set title: "Space::Clock", resizable: true, width: $width,
+height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps
 	bg = Rectangle.new width: $width, height: $height, color: $defaultcolours, z: -10
 
 	timelabel = Text.new t.call('%T:%N')[0..-8], font: 'mage/arima.otf', size: $fontsize + 20
