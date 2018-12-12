@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 # Written by Sourav Goswami thanks to Ruby2D.
+# The GNU General Public License v3.0
 
 begin
 	require 'ruby2d'
