@@ -2,12 +2,17 @@
 # Written by Sourav Goswami thanks to Ruby2D.
 # The GNU General Public License v3.0
 
+PATH = File.dirname(__FILE__)
+FONT = File.join(PATH, 'mage', 'arima.otf')
+FONT2 = File.join(PATH, 'mage', 'MateSC-Regular.ttf')
+
 begin
 	require 'ruby2d'
 	require 'securerandom'
+	require 'open3'
 
- 	file= File.readlines('config.conf')
-	conversion = ->(option) { file.select { |i| i.strip.start_with?(option.to_s) }[0].to_s.split('=')[-1].to_s.strip }
+ 	file= File.readlines(File.join(PATH, 'config.conf'))
+	conversion = ->(option) { file.select { |i| i.strip.start_with?(option.to_s) }[-1].to_s.split('=')[-1].to_s.strip }
 
 	$width, $height= conversion.call(:Width).to_i, conversion.call(:Height).to_i
 	$fps = conversion.call(:FPS).to_i
@@ -42,67 +47,63 @@ begin
 
 	$start_time = Time.new.strftime('%s').to_i
 
-	$customfont = 'mage/arima.otf' if $customfont.empty?
+	$customfont = FONT if $customfont.empty? || !File.readable?($customfont)
+
 rescue LoadError
 	warn "Uh Oh, Ruby2D is not installed. Please read the instruction.txt file in this directory"
 	abort
+
 rescue NoMethodError, Errno::ENOENT
-	warn "Generating the config.conf file with default values."
-	Thread.new { system('ruby', 'Subwindows/conf_generator.rb') }
-	sleep 2
-	Thread.new { system('ruby', 'main.rb') }
+	warn 'The config.conf file is either missing, or has wrong content. Generating a fresh config.conf file with default values.'
+	Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'conf_generator.rb')) }
+	warn 'Generated config.conf file with the default values'
+	warn "Launching a new #{__FILE__} window"
+	puts Open3.capture2e('ruby', __FILE__)
+	warn "Exiting main #{__FILE__}"
+	exit! 0
 end
 
 END { run_for = Time.new.strftime('%s').to_i - $start_time
-	"Thanks for using Space::Clock for #{run_for} #{run_for == 1 ? "second" : "seconds"}.\nHave a good day...".chars do |c|
+	"Thanks for using Space::Clock for #{run_for} #{run_for == 1 ? "second" : "seconds"}.\nHave a good day...".each_char do |c|
 	print "\033[38;5;#{rand(160..184)}m#{c}" end }
 
 module Ruby2D
-	def change_colour(*color)
-		opacity = self.opacity
-		self.color = color.empty? ? "##{SecureRandom.hex(3)}" : color.sample
-		self.opacity = opacity
+	define_method(:change_colour) do |colour = "##{SecureRandom.hex(3)}"|
+		self.color, self.opacity = colour, opacity
 	end
 end
 
-def main
-	static = -> (size, z=-5) {
-		Image.new( ['crystals/hoverstars.png', 'crystals/hoverstars1.png', 'crystals/hoverstars2.png', 'crystals/hoverstars3.png', 'crystals/hoverstars4.png',
-						'crystals/hoverstars5.png', 'crystals/hoverstars6.png', 'crystals/hoverstars7.png', 'crystals/hoverstars8.png',
-						'crystals/hoverstars9.png'].sample, x: rand(0..$width), y: rand(0..$height), width: size, height: size, z: z)
-	}
-
+define_method(:main) do
+	static = -> (size, z=-5) { Image.new(File.join(PATH, 'crystals', 'hoverstars' + rand(1..10).to_s + '.png'), x: rand(0..$width), y: rand(0..$height), width: size, height: size, z: z) }
 	magic = -> (z=-15, size=1) { Square.new x: rand(0..$width), y: rand(0..$height), z: z, color: %w(#ffff00 #ffffff #6ba3ff).sample, size: size }
-
 	t = proc { |format| Time.new.strftime(format) }
 
-	set title: "Space::Clock", resizable: true, width: $width,
-		height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps
+	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps
 
 	bg = Rectangle.new width: $width, height: $height, color: $defaultcolours, z: -10
 
-	timelabel = Text.new t.call('%T:%N')[0..-8], font: 'mage/arima.otf', size: $fontsize + 20
+	timelabel = Text.new t.('%T:%N')[0..-8], font: FONT, size: $fontsize + 20
 	timelabel.x, timelabel.y = $width/2 - timelabel.width/2, $height/2 - timelabel.height/2
 	timeline = Line.new x1: timelabel.x + timelabel.width/2, x2: timelabel.x + timelabel.width/2,
 			y1: timelabel.y + timelabel.height - 20, y2: timelabel.y + timelabel.height - 20, width: 3
 	timelineparam = timelabel.x + timelabel.width/2
 	timelabelswitch = 1
 
-	ampm = Text.new t.call('%r')[-2..-1], font: 'mage/arima.otf'
+	ampm = Text.new t.call('%r')[-2..-1], font: FONT
 	ampm.x, ampm.y, ampm.opacity = timelabel.x + timelabel.width - 5, timelabel.y, 0
 
 	timeformat = ('%T:%N') if $defaulttimeformat
 	timeformat = '%I:%M:%S:%N' unless $defaulttimeformat
 	ampm.opacity = 1 unless $defaulttimeformat
 
-	daylabel = Text.new t.call('%A'), font: 'mage/arima.otf', size: $fontsize
+	daylabel = Text.new t.call('%A'), font: FONT, size: $fontsize
 	daylabel.x, daylabel.y = $width/2 - daylabel.width/2, timelabel.y - daylabel.height
 	dayline = Line.new x1: daylabel.x + daylabel.width/2, x2: daylabel.x + daylabel.width/2,
 			y1: daylabel.y + daylabel.height - 20, y2: daylabel.y + daylabel.height - 20, width: 3
 
 	daylineparam = daylabel.x + daylabel.width/2
 
-	datelabel = Text.new t.call('%d/%m/%y'), font: 'mage/arima.otf', size: $fontsize
+	datelabel = Text.new t.call('%d/%m/%y'), font: FONT, size: $fontsize
 	datelabel.x, datelabel.y = $width/2 - datelabel.width/2, timelabel.y + timelabel.height
 	dateline = Line.new x1: datelabel.x + datelabel.width/2, x2: datelabel.x + datelabel.width/2,
 			y1: datelabel.y + datelabel.height - 20, y2: datelabel.y + datelabel.height - 20, width: 3
@@ -111,15 +112,15 @@ def main
 	dateformat = t.call($defaultdateformat)
 	dateformatswitch = 1
 
-	greetlabel = Text.new "Welcome to Space Clock", font: 'mage/MateSC-Regular.ttf', size: 50
+	greetlabel = Text.new "Welcome to Space Clock", font: FONT2, size: 50
 	greetlabel.x, greetlabel.y, greetlabel.opacity = $width/2 - greetlabel.width/2, daylabel.y - greetlabel.height, 1.5
 
-	greetlabel1 = Text.new "Welcome to Space Clock", font: 'mage/MateSC-Regular.ttf', size: 50
+	greetlabel1 = Text.new "Welcome to Space Clock", font: FONT2, size: 50
 	greetlabel1.x, greetlabel1.y, greetlabel1.opacity = $width/2 - greetlabel1.width/2, datelabel.y + datelabel.height, 1.5
 
 	greetflag = [-10.0, 10.0].sample
 
-	customemove = Image.new  'crystals/moveicon.png', z: 1
+	customemove = Image.new  File.join(PATH, 'crystals', 'moveicon.png'), z: 1
 	customemove.opacity, movealpha = 0, false
 
 	customtext1 = Text.new $customtext1, font: $customfont, size: $customsize1, color: $customfontcolour
@@ -130,122 +131,104 @@ def main
 	customtext2.x, customtext2.y = $width/2 - customtext2.width/2, greetlabel1.y + greetlabel1.size
 	customtext2drag = false
 
-	spacecrafts, fires, fireball, firepixels, comets, sparkles, crystals, planets = [], [], [], [], [], [], [], []
+	spacecrafts, fires, fireball, firepixels, comets, crystals = [], [], [], [], [], []
 	spacecrafts_speed, spacecrafs_size = [], []
-	particles, particleswitch, randomparticles, hoverparticles1, hoverparticles2, hoverparticles3 = [], true, [], [], [], []
+	particleswitch, randomparticles = true, []
 	snowflakes1, snowflake_particles = [], []
-	magicparticles1, magicparticles2, magicparticles3, magicparticles4 = [], [], [], []
-	magicparticles5, magicparticles6, magicparticles7, magicparticles8  = [], [], [], []
 
-	magics, speeds = [], []
 	i, spaceshiphover = 0, nil
 	timelinebool, datelinebool, daylinebool = false, false, false
 
-	Thread.new {
-		for temp in 0..($width/35)
+	Thread.new do
+		(0..($width/35)).each do |temp|
 			tempsize = rand(30.0..40.0)
-			Image.new  ['crystals/crystal1.png', 'crystals/crystal2.png', 'crystals/crystal3.png', 'crystals/crystal4.png', ].sample,
-						width: tempsize, height: tempsize, x: temp * rand(tempsize - 2.0..tempsize + 2.0), y: $height - tempsize - 10, z: -15
+			Image.new(File.join(PATH, 'crystals', "crystal#{rand(1..4)}.png"), width: tempsize, height: tempsize, x: temp * rand(tempsize - 2.0..tempsize + 2.0),
+				y: $height - tempsize - 8, z: -15)
 
 			tempsize = rand(30.0..40.0)
-			crystals[temp] = Image.new( 'crystals/crystal3.png', width: tempsize, height: tempsize, x: temp * rand(40.0..45.0), y: $height - tempsize - 10,
+			crystals[temp] = Image.new(File.join(PATH, 'crystals', 'crystal3.png'), width: tempsize, height: tempsize, x: temp * rand(40.0..45.0), y: $height - tempsize - 8,
 				z: -15, color: %w(#ffff00 #00ffff #ffffff).sample)
 		end
 
 		($width/150).times do
 			tempsize = rand(14.0..16.0)
-			Image.new  ['crystals/specialstar.png', 'crystals/specialstar2.png', 'crystals/specialstar3.png'].sample,
-					x: rand(0..$width), y: $height - tempsize * 1.3, z: -[15,16].sample, width: tempsize, height: tempsize
+			Image.new(File.join(PATH, 'crystals', "specialstar#{rand(1..3)}.png"), x: rand(0..$width), y: $height - tempsize * 1.3,
+				z: -[15, 16].sample, width: tempsize, height: tempsize)
 		end
-		Image.new  'crystals/galaxy2.png', y: $height - 150, z: -25, x: rand(0..$width - 50)
-		Image.new  'crystals/galaxy3.png', y: 50, z: -25, x: rand(0..$width - 50), width: $height/10, height: $height/10
-	}
 
-	galaxy = Image.new  'crystals/galaxy1.png', y: 0, z: -25, width: timelabel.width * 2, height: timelabel.width
+		Image.new(File.join(PATH, 'crystals', 'galaxy2.png'), y: $height - 150, z: -25, x: rand(0..$width - 50))
+		Image.new(File.join(PATH, 'crystals', 'galaxy3.png'), y: 50, z: -25, x: rand(0..$width - 50), width: $height/10, height: $height/10)
+	end
+
+	galaxy = Image.new(File.join(PATH, 'crystals', 'galaxy1.png'), y: 0, z: -25, width: timelabel.width * 2, height: timelabel.width)
 	galaxy.x, galaxy.y = $width/2 - galaxy.width/2, $height/2 - galaxy.height/2
 
-	$spaceships.times do |temp|
+	fires = Array.new($spaceships) do |temp|
 		speed = rand(3.0..10.0)
-		img = Image.new(['crystals/spacecraft1.png', 'crystals/spacecraft2.png',
-					'crystals/spacecraft3.png', 'crystals/spacecraft4.png',
-					'crystals/spacecraft5.png', 'crystals/spacecraft6.png', 'crystals/spacecraft7.png'].sample,
-					x: rand(0..$width), y: rand($height..$height + 2000), width: 25, height: 40, z: -15)
+		img = Image.new(File.join(PATH, 'crystals', 'spacecraft' + rand(1..7).to_s + '.png'), x: rand(0..$width), y: rand($height..$height + 2000), width: 25, height: 40, z: -15)
+		spacecrafts.push(img)
+		spacecrafts_speed.push(speed)
 
-		spacecrafts << img
-		spacecrafts_speed << speed
+		spacecrafs_size.push(
+			if speed <= 5.0 then [img.width/2, img.height/2]
+			elsif speed <= 7.0 then [img.width/1.5, img.height/1.5]
+			else [img.width, img.height]
+			end
+		)
 
-		if speed <= 5.0 then spacecrafs_size << [img.width/2, img.height/2]
-			elsif speed <= 7.0 then spacecrafs_size << [img.width/1.5, img.height/1.5]
-			else spacecrafs_size << [img.width, img.height]
-		end
-
-		fires << Image.new(
-						['crystals/fireball1.png', 'crystals/fireball2.png',
-						'crystals/fireball3.png', 'crystals/fireball4.png',
-						'crystals/fireball5.png', 'crystals/fireball6.png'].sample, x: rand(0..$width), y: rand(0..$width), z: -15)
+		Image.new(File.join(PATH, 'crystals', 'fireball' + rand(1..6).to_s + '.png'), x: rand(0..$width), y: rand(0..$width), z: -15)
 	end
 
-	$planets.times do |temp|
-		size = rand(10.0..30.0)
-		planets << p = Image.new( "crystals/#{%w(jupiter pinkie earth).sample}.png",
-				width: size, height: size, x: rand(0..$width), y: rand($height/2..$height), z: -20) ; p.opacity = rand(0.5..1)
+	planets = Array.new($planets) do |temp|
+				size = rand(10.0..30.0)
+				Image.new(File.join(PATH, 'crystals', "#{%w(jupiter pinkie earth).sample}.png"), width: size, height: size, x: rand(0..$width), y: rand($height/2..$height), z: -20, opacity: rand(0.5..1))
 	end
 
-	$comets.times do |temp|
+	comets = Array.new($comets) do |temp|
 		size = rand(2.0..10.0)
-		comets << Image.new( ['crystals/comet1.png', 'crystals/comet2.png'].sample,
- 						x: rand($width..$width + 700), y: rand(-700..0),
-						z: -15, width: size, height: size, color: %w(#ffff00 #ffffff #6ba3ff #ff6850).sample)
+		Image.new(File.join(PATH, 'crystals', %w(comet1 comet2).sample + '.png'), x: rand($width..$width + 700), y: rand(-700..0), z: -15, width: size, height: size,
+			color: %w(#ffff00 #ffffff #6ba3ff #ff6850).sample)
 	end
-	$particle.times { particles << Image.new('crystals/1pixel_square.png', y: -10) }
-	snow = nil
 
-	($width/99).times { |temp| snow = Image.new( 'crystals/snow.png', y: $height - 10, x: temp * 100, z: -14) }
-	($width/35).times { sparkles.push magic.call(-12) }
+	particles = Array.new($particle) { Image.new(File.join(PATH, 'crystals', '1pixel_square.png'), y: -10) }
+
+	($width/99).times { |temp| Image.new(File.join(PATH, 'crystals', 'snow.png'), y: $height - 10, x: temp * 100, z: -14) }
+	sparkles = Array.new($width/35) { magic.call(-12) }
+
 	($width/10).times { |temp| randomparticles[temp] = static.call(rand(4..8)) }
-
-	moon = Image.new  'crystals/moon.png', x: 0, y: $height - 80, width: 100, height: 100 , z: -20
+	Image.new(File.join(PATH, 'crystals', 'moon.png'), x: 0, y: $height - 80, width: 100, height: 100 , z: -20)
 
 	snow_flake_speed = []
-	$flakes.times do |temp|
+	snowflakes1 = Array.new($flakes) do |temp|
 		size = rand(25.0..35.0)
-		snowflakes1 << c = Image.new("crystals/#{%w(flake1 flake2).sample}.png", x: rand(0..$width),
-								y: rand(-1000..0), z: -10, width: size, height: size) ;  c.opacity = rand(0.3..0.7)
-		snow_flake_speed << rand(0.3..2.0)
+		snow_flake_speed.push(rand(-1..1))
+		Image.new(File.join(PATH, 'crystals', "#{%w(flake1 flake2).sample}.png"), x: rand(0..$width), y: rand(-1000..0), z: -10, width: size, height: size, opacity: rand(0.3..0.7))
 	end
 
-	($flakes * 2).times { |temp| snowflake_particles << magic.call(1) }
+	snowflake_particles = Array.new($flakes * 2) { |temp| magic.(1) }
 
 	$hoverparticles = 1 if $hoverparticles <= 0
-	$hoverparticles.times do |temp|
-		tempsize = rand(8..15) ; hoverparticles1[temp] = static.call tempsize, 2
-		tempsize = rand(8..15) ; hoverparticles2[temp] = static.call tempsize, 2
-		tempsize = rand(8..15) ; hoverparticles3[temp] = static.call tempsize, 2
-	end
 
-	$magicparticles.times do |temp|
-		magicparticles1[temp], magicparticles2[temp] = static.call(rand(8..12)), static.call(rand(8..12))
-		magicparticles3[temp], magicparticles4[temp] = static.call(rand(8..12)), static.call(rand(8..12))
-		magicparticles5[temp], magicparticles6[temp] = static.call(rand(8..12)), static.call(rand(8..12))
-		magicparticles7[temp], magicparticles8[temp] = static.call(rand(8..12)), static.call(rand(8..12))
-	end
+	hoverparticles, magicparticles = Array.new($hoverparticles) { static.(rand(8..15)) }, Array.new($magicparticles) { static.call(rand(8..15)) }
 
-	100.times do |temp|
-		magics << magic.call(-5, 2)
+	speeds = []
+	magics = Array.new(100) do |temp|
 		speeds << rand(2.0..8.0)
+		magic.call(-5, 2)
  	end
 
-	$staticmagic.times do static.call(rand(4..8)) end
-	($spaceships * rand(10..12)).times do |temp|
+	$staticmagic.times { static.call(rand(4..8)) }
+
+	fireball = Array.new($spaceships * rand(10..12)) do |temp|
 		tempsize = rand(10..19)
 		firepixels << magic.call(-15)
-		fireball << img = Image.new( 'crystals/light.png', x: rand(0..$width), y: rand(0..$height),
-			z: -15, height: tempsize, width: tempsize) ; img.opacity = 0
+		Image.new(File.join(PATH, 'crystals', 'light.png'), x: rand(0..$width), y: rand(0..$height),
+			z: -15, height: tempsize, width: tempsize, opacity: 0)
 	end
 
 	tempsize = rand(80..100)
-	light = Image.new  'crystals/light.png', width: tempsize, height: tempsize, x: rand(100..$width - 100), y: 20, z: -20
-	mercury, xflag = Image.new( ['crystals/pinkie.png', 'crystals/earth.png'].sample, width: 1, height: 1, x: light.x - light.width/2,
+	light = Image.new(File.join(PATH, 'crystals', 'light.png'), width: tempsize, height: tempsize, x: rand(100..$width - 100), y: 20, z: -20)
+	mercury, xflag = Image.new(File.join(PATH, 'crystals', %w(pinkie earth).sample + '.png'), width: 1, height: 1, x: light.x - light.width/2,
 							y: light.y + light.height/2 - 5, z: -21, color: '#000000'), 0
 
 	on :mouse_move do |e|
@@ -268,14 +251,10 @@ def main
 				customemove.y = customtext2.y + customtext2.height/2 - customemove.height/2
 
 		else movealpha = false end
+		el = hoverparticles.sample
+		el.x, el.y, el.opacity = e.x, e.y, 1
 
-		key = rand(0...$hoverparticles)
-		hoverparticles1[key].opacity = hoverparticles2[key].opacity = hoverparticles3[key].opacity = rand(0.7..1)
-		hoverparticles1[key].x, hoverparticles1[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
-		hoverparticles2[key].x, hoverparticles2[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
-		hoverparticles3[key].x, hoverparticles3[key].y = rand(e.x - 5..e.x + 5), rand(e.y - 5..e.y + 5)
-		hoverparticles1[key].color = hoverparticles2[key].color = hoverparticles3[key].color = '#ffffff'
-		for val in particles do val.opacity = 0 if val.contains?(e.x, e.y) end
+		particles.each { |val| val.opacity = 0 if val.contains?(e.x, e.y) }
 		for val in spacecrafts do if val.contains?(e.x, e.y) then spaceshiphover = val ; break end end
 	end
 
@@ -291,31 +270,26 @@ def main
 
 			elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y)
 				timelabelswitch += 1
-				if timelabelswitch % 2 == 0 then timeformat, ampm.opacity = '%I:%M:%S:%N', 1
-					else timeformat, ampm.opacity = '%T:%N', 0 end
+				timeformat, ampm.opacity = timelabelswitch % 2 == 0 ? ['%I:%M:%S:%N', 1] : ['%T:%N', 0]
 
 			else
-				$magicparticles.times do |key|
-					magicparticles1[key].x, magicparticles1[key].y = rand(0..$width), rand(0..$height)
-					magicparticles2[key].x, magicparticles2[key].y = rand(0..$width), rand(0..$height)
-					magicparticles3[key].x, magicparticles3[key].y = rand(0..$width), rand(0..$height)
-					magicparticles4[key].x, magicparticles4[key].y = rand(0..$width), rand(0..$height)
-				end
+				mgp = magicparticles.sample
+				mgp.x, mgp.y = e.x, e.y
 
 				greetflag = [-8.0, 8.0].sample
 				time = t.call('%H').to_i
 
-				if time >=  5 and time < 12 then greetlabel.text = "Good Morning!..."
-					elsif time >=  12 and time < 16 then greetlabel.text = "Good Afternoon."
-					elsif time >=  16 and time < 19 then greetlabel.text = "Good Evening!!..."
-					else greetlabel.text = "Very Good Night" end
+				greetlabel.text = if time >=  5 and time < 12 then "Good Morning!..."
+				elsif time >=  12 and time < 16 then "Good Afternoon."
+				elsif time >=  16 and time < 19 then "Good Evening!!..."
+				else "Very Good Night" end
 
 				greetlabel.x, greetlabel.opacity = $width/2 - greetlabel.width/2, 1
-				greetlabel1.text = t.call('%c')
+				greetlabel1.text = t.('%c')
 				greetlabel1.x, greetlabel1.opacity = $width/2 - greetlabel.width/2, 1
 			end
 		else
-			bg.change_colour ["##{SecureRandom.hex(3)}", "##{SecureRandom.hex(3)}", "##{SecureRandom.hex(3)}", "##{SecureRandom.hex(3)}"]
+			bg.change_colour(4.times.map { "##{SecureRandom.hex(3)}" })
 		end
 	end
 
@@ -326,8 +300,8 @@ def main
 
 		if e.delta_y == 1
 			bg.opacity -= 0.2 if bg.opacity >= 0
-			particles.each do |val| val.opacity = 0 end
-			snowflakes1.each do |val| val.opacity = 0 end
+			particles.each { |val| val.opacity = 0 }
+			snowflakes1.each { |val| val.opacity = 0 }
 		end
 	end
 
@@ -340,8 +314,8 @@ def main
 				greetlabel.x = $width/2 - greetlabel.width/2
 				greetlabel1.x = $width/2 - greetlabel1.width/2
 				greetlabel.opacity = greetlabel1.opacity = 1.5
-				particles.each do |val| val.opacity = 0 end
-				snowflakes1.each do |val| val.opacity = 0 end
+				particles.each { |val| val.opacity = 0 }
+				snowflakes1.each { |val| val.opacity = 0 }
 
 			elsif bg.opacity <= 0
 				bg.opacity = 1
@@ -353,50 +327,63 @@ def main
 			end
 		end
 
-		Thread.new { system('ruby', 'Subwindows/properties.rb', "#{$defaultcolours}") } if 'cs'.include?(k.key)
+		Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'properties.rb'), "#{$defaultcolours}") } if %w(c s).include?(k.key)
 
 		if k.key == 'up'
 			bg.opacity += 0.2 if bg.opacity < 1
-			particles.each do |val| val.opacity = 0 end
+			particles.each { |val| val.opacity = 0 }
 		end
 
 		if k.key == 'down'
 			bg.opacity -= 0.2 if bg.opacity > 0
-			particles.each do |val| val.opacity = 0 end
-			snowflakes1.each do |val| val.opacity = 0 end
+			particles.each { |val| val.opacity = 0 }
+			snowflakes1.each { |val| val.opacity = 0 }
 		end
 
-		if ['right', 'left'].include?(k.key)
-			for key in 0...$hoverparticles
-				hoverparticles1[key].color = hoverparticles2[key].color = hoverparticles3[key].color = '#ffffff'
-				hoverparticles1[key].x, hoverparticles1[key].y = rand(0..$width), rand(0..$height)
-				hoverparticles2[key].x, hoverparticles2[key].y = rand(0..$width), rand(0..$height)
-				hoverparticles3[key].x, hoverparticles3[key].y = rand(0..$width), rand(0..$height)
-			end
-		end
-
+		hoverparticles.each { |el| el.x, el.y, el.opacity = rand(0..$width), rand(0..$height), 1 } if ['right', 'left'].include?(k.key)
 		exit if ['escape', 'q', 'p'].include?(k.key)
 
-		Thread.new { system('ruby', 'main.rb') } if ['right shift', 'left shift'].include?(k.key)
+		if ['right shift', 'left shift'].include?(k.key)
+			puts  "Creating a new window for #{__FILE__}! Please wait!"
+			Thread.new { puts Open3.capture2e('ruby', __FILE__) }
+			puts "Happily opened another #{__FILE__}"
+		end
 
-		Thread.new { system('ruby', 'Subwindows/about.rb') } if ['a', 'i'].include?(k.key)
+		Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'about.rb')) } if ['a', 'i'].include?(k.key)
 
 		if ['left alt', 'right alt', 'right ctrl', 'left ctrl', 'tab'].include?(k.key)
-			for val in spacecrafts do val.x, val.y = rand(0..$width), rand(0..$height + 1000) end
-			for val in planets do val.x, val.y = rand(0..$width), rand($height/2..$height) end
+			spacecrafts.each { |val| val.x, val.y = rand(0..$width), rand(0..$height + 1000) }
+			planets.each { |val| val.x, val.y = rand(0..$width), rand($height/2..$height) }
 			light.x, light.y = rand(100..$width - 100), 20
 			mercury.x, mercury.y = light.x - light.width/2, light.y + light.height/2
 			mercury.width, mercury.height = 1, 1
 			movealpha = false
 			customtext1.x, customtext1.y = $width/2 - customtext1.width/2, greetlabel.y - customtext1.height
 			customtext2.x, customtext2.y = $width/2 - customtext2.width/2, greetlabel1.y + greetlabel1.height
-			bg.change_colour $defaultcolours
+			bg.change_colour($defaultcolours)
 		end
 	end
-	sparkles.each do |val| val.color = '#ffffff' end
+
 	air_direction = [-1, 0, 1].sample
 
 	update do
+		magicparticles.each_with_index do |el, index|
+			if !(el.x < -el.width || el.x > $width) && !(el.y < -el.height || el.y > $height)
+				el.x += Math.sin(index)
+				el.y += Math.cos(index)
+				el.rotate += el.height / 10.0
+			else
+				el.x, el.y = rand(0..$width), rand(0..$height)
+			end
+		end
+
+		hoverparticles.each_with_index do |el, index|
+			el.x += Math.sin(index)
+			el.y += Math.cos(index)
+			el.rotate += el.width / 5.0
+			el.opacity -= 0.01
+		end
+
 		i += 1
 		air_direction = [-1, 0, 1].sample if i % ($fps * 5) == 0
 
@@ -406,22 +393,31 @@ def main
 		ampm.text = t.call('%r')[-3..-1]
 
 		if bg.opacity < 1
-			snowflake_particles[0..30].each { |val| val.x, val.y = rand(0..$width), rand(0..$height) ; val.change_colour('#ffffff', '#ffff00') }
+			snowflake_particles[0..30].each { |val| val.x, val.y = rand(0..$width), rand(0..$height) }
 
 			crystals.each do |val|
 				samplespark = sparkles.sample
 				samplespark.x, samplespark.y = rand(val.x..val.x + val.width), rand(val.y..val.y + val.height)
 			end
 
-			if xflag != 1 then mercury.width -= 0.1 ; mercury.height -= 0.1
-				else mercury.width += 0.1 ; mercury.height += 0.1 end
+			if xflag != 1
+				mercury.width -= 0.1
+				mercury.height -= 0.1
+			else
+				mercury.width += 0.1
+				mercury.height += 0.1
+			end
 
-			if mercury.x > light.x + light.width then xflag, mercury.z = -1, -20
-				elsif mercury.x < light.x then xflag, mercury.z = 1, -21 end
+			if mercury.x > light.x + light.width
+				xflag, mercury.z = -1, -20
+			elsif mercury.x < light.x
+				xflag, mercury.z = 1, -21
+			end
+
 			mercury.x += xflag
 
 			if (mercury.x >= light.x + light.width/3 and mercury.x <= light.x + light.width/2) and xflag == -1 then light.b = light.g = rand(0.6..1)
-				else light.b = light.g = 1 end
+			else light.b = light.g = 1 end
 
 			particleswitch = false
 
@@ -441,24 +437,24 @@ def main
 				fires[index].x, fires[index].y = c.x + c.width/2 + Math.sin(i) - 10, c.y + c.height + Math.cos(i)
 
 				temp = rand(0...fireball.length)
-					fireball[temp].width = fireball[temp].height = rand(15.0..19.0)
-					fireball[temp].opacity, fireball[temp].x = 1, rand(fires[index].x..fires[index].x + fires[index].width - fireball[temp].width)
-					fireball[temp].y, fireball[temp].color = rand(fires[index].y..fires[index].y + fires[index].height), '#00ff00'
+				fireball[temp].width = fireball[temp].height = rand(15.0..19.0)
+				fireball[temp].opacity, fireball[temp].x = 1, rand(fires[index].x..fires[index].x + fires[index].width - fireball[temp].width)
+				fireball[temp].y, fireball[temp].color = rand(fires[index].y..fires[index].y + fires[index].height), '#00ff00'
 
-					firepixels[temp].opacity, firepixels[temp].x = 1, rand(fires[index].x..fires[index].x + fires[index].width)
-					firepixels[temp].y = rand(fires[index].y..fires[index].y + fires[index].height)
-					c.x, c.y = rand(0..$width), rand($height..$height + 1000) if c.y < -c.height
+				firepixels[temp].opacity, firepixels[temp].x = 1, rand(fires[index].x..fires[index].x + fires[index].width)
+				firepixels[temp].y = rand(fires[index].y..fires[index].y + fires[index].height)
+				c.x, c.y = rand(0..$width), rand($height..$height + 1000) if c.y < -c.height
 			end
 
 			fireball.each do |val|
+				val.x += air_direction
 				val.r += 0.15 if val.r <= 1
 				val.b += 0.08 if val.b <= 1
 				val.g -= 0.1 if val.g <= 1
 				val.opacity -= 0.025
 				val.width -= 0.1
 				val.height -= 0.1
-				if val.opacity <= 0.5 then val.color = '#ffffff' end
-				val.x += air_direction
+				val.color = '#ffffff' if val.opacity <= 0.5
 			end
 
 			firepixels.each do |val|
@@ -468,6 +464,7 @@ def main
 			end
 		else
 			particleswitch = true
+
 			snowflakes1.each_with_index do |val, index|
 				if val.y < $height - val.height/2 and (val.x > -val.height and val.x < $width) and val.opacity > 0
 					val.x += air_direction
@@ -476,7 +473,7 @@ def main
 					unless air_direction == 0 then val.rotate += air_direction * 3 else val.rotate += 1 end
 					psample = snowflake_particles.sample
 					psample.x, psample.y = rand(val.x..val.x + val.width), rand(val.y..val.y + val.height +  10)
-					psample.change_colour('#ffffff')
+					psample.change_colour('#FFFFFF')
 				else
 					val.opacity -= 0.005
 					val.x, val.y, val.opacity = rand(0..$width), rand(-1000..0), rand(0.3..0.7) if i % 420 == 0
@@ -539,53 +536,8 @@ def main
 		greetlabel1.x -= greetflag if greetlabel1.x > -greetlabel1.width and greetlabel1.x < $width + greetlabel1.width
 		greetlabel1.opacity -= 0.02 if greetlabel1.opacity >= 0
 
-		$magicparticles.times do |el|
-			val = magicparticles1[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.y < -val.height
-			val = magicparticles2[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x > $width + val.width or val.y < -val.height
-			val = magicparticles3[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y > $height + val.height
-			val = magicparticles4[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x > $width + val.width or val.y > $height + val.height
-			val = magicparticles5[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width
-			val = magicparticles6[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x > $width + val.width
-			val = magicparticles7[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y < -val.height
-			val = magicparticles8[el] ; val.x, val.y = rand(0..$width), rand(0..$height) if val.x < -val.width or val.y > $height + val.height
-
-			magicparticles1[el].x -= 1 ; magicparticles1[el].y -= 1
-			magicparticles2[el].x += 1 ; magicparticles2[el].y -= 1
-			magicparticles3[el].x -= 1 ; magicparticles3[el].y += 1
-			magicparticles4[el].x += 1 ; magicparticles4[el].y += 1
-			magicparticles5[el].x -= 1 ; magicparticles6[el].x += 1
-			magicparticles7[el].y -= 1 ; magicparticles8[el].y += 1
-
-			magicparticles1[el].rotate -= 5
-			magicparticles3[el].rotate -= 5
-			magicparticles5[el].rotate -= 5
-
-			magicparticles2[el].rotate += 5
-			magicparticles4[el].rotate += 5
-			magicparticles6[el].rotate += 5
-			magicparticles7[el].rotate += 5
-			magicparticles8[el].rotate += 5
-		end
-
-		$hoverparticles.times do |key|
-			hoverparticles1[key].y -= 1 if hoverparticles1[key].y > -20
-			hoverparticles2[key].y += 1 if hoverparticles2[key].y < $height + 5
-			hoverparticles3[key].y += 1 if hoverparticles3[key].y < $height + 5
-			hoverparticles3[key].x += 1 if hoverparticles3[key].x < $width + 5
-			hoverparticles2[key].x -= 1 if hoverparticles2[key].x > -20
-
-			hoverparticles1[key].opacity -= 0.02 ; hoverparticles2[key].opacity -= 0.02 ; hoverparticles3[key].opacity -= 0.02
-			hoverparticles1[key].b -= 0.015 ; hoverparticles1[key].g -= 0.015
-			hoverparticles2[key].b -= 0.015 ; hoverparticles2[key].g -= 0.015
-			hoverparticles3[key].b -= 0.015 ; hoverparticles3[key].g -= 0.015
-
-			hoverparticles1[key].rotate += 10
-			hoverparticles2[key].rotate -= 10
-			hoverparticles3[key].rotate += 10
-		end
-
-		timelabel.text = t.call(timeformat)[0..-8]
-		daylabel.text = t.call('%A')
+		timelabel.text = t.(timeformat)[0..-8]
+		daylabel.text = t.('%A')
 		datelabel.text = dateformat
 		randomparticles.sample.opacity = [0, 1].sample
 
@@ -598,7 +550,9 @@ def main
 
 		for val in particles
 			val.rotate += val.width/100.0
-			unless val.y <= -val.height or val.opacity <= 0 then val.y -= 1
+
+			unless val.y <= -val.height or val.opacity <= 0
+				val.y -= 1
 			else
 				val.width = val.height = rand($width/15..$width/10)
 				val.y, val.x, val.opacity = rand($height..$height + 1000), rand(0..$width - val.width/2), rand(0.1..0.3)
@@ -610,5 +564,4 @@ end
 
 begin
 	main
-rescue Exception
 end
