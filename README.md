@@ -20,51 +20,51 @@ Yet another beautiful and configurable digital clock application written in ruby
 
 ## Keys:
 
-  **Space**
++  **Space**
   
    Press the Space key to show / hide the foreground.
 
-  **Up**
++  **Up**
 
    The Up key will increase the opacity of the foreground.
 
-  **Down**
++  **Down**
 
    Pressing the Down key will reduce the opacity of the foreground.
 
-  **Right / Left**
++  **Right / Left**
 
    Make the particles on cursor disappear!
 
-  **Right Shift / Left Shift**
++  **Right Shift / Left Shift**
 
    The Right Shift and Left Shift keys will launch a new window of Space::Clock parallely.
 
-  **Left Alt / Right Alt / Left Ctrl / Tab**
++  **Left Alt / Right Alt / Left Ctrl / Tab**
 
    Shuffle everything in the Space.
 
-  **F11**
++  **F11**
 
    Toggle fullscreen.
 
-  **A / I**
++ **A / I**
 
    Launch the about window.
 
-  **C / S**
++  **C / S**
 
    Show the options mentioned in the config.conf file
 
 ## Mouse Buttons:
 
-  **Secondary Mouse Button**
++  **Secondary Mouse Button**
   
    Pressing the Secondary mouse button will show a greetings.
    Pressing the Secondary mouse button on Time and Date will change the Time and Date format.
    Pressing the Secondary mouse button on a custom text will help you drag the text.
       
-  **Primary Mouse Button**
++  **Primary Mouse Button**
 
    Pressing the primary mouse button will change the foreground colour randomly (it generates a random hex colour)
 
@@ -74,6 +74,9 @@ Yet another beautiful and configurable digital clock application written in ruby
    You can change the values after the `=` to change the behaviour of Space::Clock.
 
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
+
+## Screenshots:
+
 
 ## Note
 
