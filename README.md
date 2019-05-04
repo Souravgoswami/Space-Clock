@@ -1,7 +1,7 @@
 # Space::Clock
 Yet another beautiful and configurable digital clock application written in ruby.
 
-![spce clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
+![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
 
 
 ## Running the clock:
@@ -76,7 +76,11 @@ Yet another beautiful and configurable digital clock application written in ruby
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
 
 ## Screenshots:
+![Default](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-32-39.png)
 
+![Default 2](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-36-37.png)
+
+![Space](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
 
 ## Note
 
