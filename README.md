@@ -66,7 +66,7 @@ Yet another beautiful and configurable digital clock application written in ruby
       
 +  **Secondary Mouse Button**
 
-   Pressing the Secondary mouse button will change the foreground colour randomly (it generates a random hex colour)
+   + Pressing the Secondary mouse button will change the foreground colour randomly (it generates a random hex colour)
 
 ## Configuring / Customization ⚙️
 
