@@ -68,7 +68,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 
    Pressing the primary mouse button will change the foreground colour randomly (it generates a random hex colour)
 
-## Configuration File ⚙️
+## Configuring / Customization ⚙️
 
    The configuration file is located in the same directory of main.rb. It's called config.conf. The # are comments.
    You can change the values after the `=` to change the behaviour of Space::Clock.
