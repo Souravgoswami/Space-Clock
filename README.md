@@ -58,15 +58,15 @@ Yet another beautiful and configurable digital clock application written in ruby
 
 ## Mouse Buttons 🐭
 
-+  **Secondary Mouse Button**
-  
-   Pressing the Secondary mouse button will show a greetings.
-   Pressing the Secondary mouse button on Time and Date will change the Time and Date format.
-   Pressing the Secondary mouse button on a custom text will help you drag the text.
-      
 +  **Primary Mouse Button**
+  
+   + Pressing the primary mouse button will show a greetings.
+   + Pressing the primary mouse button on Time and Date will change the Time and Date format.
+   + Pressing the primary mouse button on a custom text will help you drag the text.
+      
++  **Secondary Mouse Button**
 
-   Pressing the primary mouse button will change the foreground colour randomly (it generates a random hex colour)
+   Pressing the Secondary mouse button will change the foreground colour randomly (it generates a random hex colour)
 
 ## Configuring / Customization ⚙️
 
