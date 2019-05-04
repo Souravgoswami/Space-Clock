@@ -44,19 +44,25 @@ rescue LoadError
 
 rescue NoMethodError, Errno::ENOENT
 	warn 'The config.conf file is either missing, or has wrong content. Generating a fresh config.conf file with default values.'
-	Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'conf_generator.rb')) }
-	warn 'Generated config.conf file with the default values'
-	warn "Launching a new #{__FILE__} window"
-	puts Open3.capture2e('ruby', __FILE__)
-	warn "Exiting main #{__FILE__}"
+
+	if Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{File.join(PATH, 'Subwindows', 'conf_generator.rb')}")
+		warn "Generated config.conf file with the default values\nLaunching a new #{__FILE__} window"
+		Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__}")
+		warn "Exiting main #{__FILE__}"
+	end
+
 	exit! 0
 end
 
 END {
 	run_for = Time.new.strftime('%s').to_i - $start_time
 	hour, minute, second = run_for / 3600, run_for % 3600 / 60, run_for % 60
-	puts "Thanks for using Space::Clock for #{hour} hour#{hour == 1 ? '' : 's'}, #{minute} minute#{minute == 1 ? '' : 's'}, #{second} second#{second == 1 ? '': 's'}."
-	puts 'Have a Good Day!!'
+	if second > 0
+		puts "Thanks for using Space::Clock for #{hour} hour#{hour == 1 ? '' : 's'}, #{minute} minute#{minute == 1 ? '' : 's'}, #{second} second#{second == 1 ? '': 's'}."
+		puts 'Have a Good Day!!'
+	else
+		puts "Thanks for testing out Space::Clock!"
+	end
 }
 
 module Ruby2D
@@ -66,7 +72,11 @@ module Ruby2D
 end
 
 define_method(:main) do
-	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps
+	fullscreen = ARGV.find { |a| a =~ /[0-9]/ }.to_i
+	$fullscreen = fullscreen.method($fullscreen ? :even? : :odd?).call.method($fullscreen ? :& : :|).($fullscreen)
+
+	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps,
+		icon: File.join(PATH, 'crystals', 'spacecraft6.png')
 	bg = Rectangle.new width: $width, height: $height, color: $defaultcolours, z: -10
 
 	static = -> (size, z=-5) { Image.new(File.join(PATH, 'crystals', 'hoverstars' + rand(1..10).to_s + '.png'), x: rand($width), y: rand($height), width: size, height: size, z: z) }
@@ -178,7 +188,7 @@ define_method(:main) do
 			color: %w(#ffff00 #ffffff #6ba3ff #ff6850).sample)
 	end
 
-	particles = Array.new($particle) { Image.new(File.join(PATH, 'crystals', '1pixel_square.png'), y: -10) }
+	particles_size = (particles = Array.new($particle) { Image.new(File.join(PATH, 'crystals', '1pixel_square.png'), x: rand($width), y: rand($height)) }).size / 3.0
 
 	($width/99).times { |temp| Image.new(File.join(PATH, 'crystals', 'snow.png'), y: $height - 10, x: temp * 100, z: -14) }
 	sparkles = Array.new($width / 35) { magic.call(-12) }
@@ -348,6 +358,10 @@ define_method(:main) do
 			customtext1.x, customtext1.y, customtext2.x, customtext2.y = $width/2 - customtext1.width/2, 0, $width/2 - customtext2.width/2, $height - customtext2.height
 			bg.change_colour($defaultcolours)
 		end
+
+		if k.key == 'f11'
+			close if Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__} #{fullscreen += 1}")
+		end
 	end
 
 	air_direction = [-1, 0, 1].sample
@@ -359,7 +373,7 @@ define_method(:main) do
 				el.y += Math.cos(index)
 				el.rotate += el.height / 10.0
 			else
-				el.x, el.y = rand($width), rand($height)
+				el.x, el.y, el.rotate = rand($width), rand($height), rand(90)
 			end
 		end
 
@@ -368,16 +382,18 @@ define_method(:main) do
 			el.y += Math.cos(index)
 			el.rotate += el.width / 5.0
 			el.opacity -= 0.01
+			el.rotate = 0 if el.opacity == 0 && el.rotate != 0
 		end
 
 		i += 1
 		air_direction = [-1, 0, 1].sample if i % ($fps * 5) == 0
 
 		if movealpha
-			customemove.opacity += 0.03 if customemove.opacity < 1
+			customemove.opacity += 0.05 if customemove.opacity < 1
 			customemove.rotate += 1
 		else
-			customemove.opacity -= 0.05 if customemove.opacity > 0
+			customemove.opacity -= 0.025 if customemove.opacity > 0
+			customemove.rotate = 0 if customemove.rotate != 0 && customemove.opacity <= 0
 		end
 
 		spaceshiphover.y > 0 ? (spaceshiphover.y -= spaceshiphover.height / 3.0) : (spaceshiphover = false) if spaceshiphover
@@ -450,7 +466,7 @@ define_method(:main) do
 				val.opacity -= 0.025
 				val.width -= 0.25
 				val.height -= 0.25
-				val.color = '#ffffff' if val.opacity <= 0.5
+				val.change_colour('#ffffff') if val.opacity <= 0.5
 			end
 
 			firepixels.each do |val|
@@ -516,14 +532,14 @@ define_method(:main) do
 			end
 		end unless greetings.empty?
 
-		for val in particles
-			val.rotate += val.width/100.0
+		particles.each_with_index do |val, index|
+			val.rotate += val.width / 100.0
 
-			unless val.y <= -val.height or val.opacity <= 0
-				val.y -= 1
+			unless val.y <= -val.height
+				val.y -= (index / particles_size) + 1
 			else
-				val.width = val.height = rand($width/15..$width/10)
-				val.y, val.x, val.opacity = rand($height..$height + 1000), rand($width - val.width/2), rand(0.1..0.3)
+				val.width = val.height = rand($width / 15..$width / 10)
+				val.y, val.x, val.opacity, val.rotate = $height, rand(-val.width..$width), rand(0.1..0.3), rand(90)
 			end
 		end if particleswitch
 	end
@@ -532,4 +548,8 @@ end
 begin
 	main
 	show
+rescue SystemExit, Interrupt
+	puts
+rescue Exception => e
+	warn "Error happened:\n\n#{e}\n\n#{e.backtrace.join("\n")}"
 end
