@@ -1,4 +1,4 @@
-# Space::Clock
+# Space::Clock ![Icon](https://github.com/Souravgoswami/Space-Clock/blob/master/Space::Clock/crystals/spacecraft6.png)
 Yet another beautiful and configurable digital clock application written in ruby.
 
 ![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
