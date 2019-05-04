@@ -40,7 +40,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 
    The Right Shift and Left Shift keys will launch a new window of Space::Clock parallely.
 
-  **Left Alt / Right Alt / Left Ctrl / Tab**:
+  **Left Alt / Right Alt / Left Ctrl / Tab**
 
    Shuffle everything in the Space.
 
