@@ -54,7 +54,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 
 +  **C / S**
 
-   Show the options mentioned (configuration / settings) in the config.conf file
+   Show the options mentioned (configuration / settings) in the config.conf file, in a separate window.
 
 ## Mouse Buttons 🐭
 
