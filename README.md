@@ -4,7 +4,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 ![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
 
 
-## Running the clock:
+## Running the clock
   1. You need Ruby, and Ruby2D.
          
         You can download and install Ruby from here (documentation provided on the website):
@@ -18,7 +18,7 @@ Yet another beautiful and configurable digital clock application written in ruby
   
           chmod 777 main.rb
 
-## Keys:
+## Keys ⌨️
 
 +  **Space**
   
@@ -56,7 +56,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 
    Show the options mentioned in the config.conf file
 
-## Mouse Buttons:
+## Mouse Buttons 🐭
 
 +  **Secondary Mouse Button**
   
@@ -68,14 +68,14 @@ Yet another beautiful and configurable digital clock application written in ruby
 
    Pressing the primary mouse button will change the foreground colour randomly (it generates a random hex colour)
 
-## Configuration File:
+## Configuration File ⚙️
 
    The configuration file is located in the same directory of main.rb. It's called config.conf. The # are comments.
    You can change the values after the `=` to change the behaviour of Space::Clock.
 
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
 
-## Screenshots:
+## Screenshots 📸
 ![Default](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-32-39.png)
 
 ![Default 2](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-36-37.png)
