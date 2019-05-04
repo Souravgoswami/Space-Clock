@@ -50,11 +50,11 @@ Yet another beautiful and configurable digital clock application written in ruby
 
 + **A / I**
 
-   Launch the about window.
+   Launch the about / info window.
 
 +  **C / S**
 
-   Show the options mentioned in the config.conf file
+   Show the options mentioned (configuration / settings) in the config.conf file
 
 ## Mouse Buttons 🐭
 
