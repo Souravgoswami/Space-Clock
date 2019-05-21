@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
-require 'ruby2d'
-require 'open3'
+%w(ruby2d open3).each { |g| require(g) }
 
 PATH = File.expand_path('..', File.dirname(__FILE__))
 FONT = File.join(PATH, 'mage', 'arima.otf')
-ARGV.push('[red, green, blue, white]') if ARGV.empty?
+ARGV.push('#FF50A6 #3CE3B4 #FFDC00 #FFDC60') if ARGV.empty?
 
 def main
 	$width, $height = 480, 843
 	set title: "Info", width: $width, height: $height, resizable: true
-	Rectangle.new color: ARGV[0].scan(/[a-z,A-Z#0-9]/).join('').split(','), width: $width, height: $height
+	Rectangle.new color: ARGV[0].scan(/[a-zA-Z#0-9\s]/).join.split, width: $width, height: $height
 	info = IO.readlines(File.join(PATH, 'config.conf'))
 
 	query = ->(option) { info.select { |line| line.strip.start_with?(option.to_s) }[-1].to_s.split('=')[-1].to_s.strip }
@@ -156,16 +155,13 @@ def main
 
 	quit_keys = %w(escape p q space return)
 
-	on :key_down do |k| exit if quit_keys.include?(k.key ) end
+	on(:key_down) { |k| close if quit_keys.include?(k.key ) }
 
-	on :mouse_move do |e|
-		close_touched = close_.contains?(e.x, e.y)
-		about_touched = about_l.contains?(e.x, e.y)
-	end
+	on(:mouse_move) { |e| close_touched, about_touched = close_.contains?(e.x, e.y), about_l.contains?(e.x, e.y) }
 
 	on :mouse_down do |e|
 		exit if close_.contains?(e.x, e.y)
-		Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'about.rb')) }
+		Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{File.join(PATH, 'Subwindows', 'about.rb')}") if about.contains?(e.x, e.y)
 	end
 
 	update do
@@ -176,5 +172,4 @@ def main
 end
 
 main
-
 show
