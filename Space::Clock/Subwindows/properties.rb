@@ -7,7 +7,7 @@ ARGV.push('#FF50A6 #3CE3B4 #FFDC00 #FFDC60') if ARGV.empty?
 
 def main
 	$width, $height = 480, 843
-	set title: "Info", width: $width, height: $height, resizable: true
+	set title: "Info", width: $width, height: $height, resizable: true, icon: File.join(PATH, %w(crystals icon.png))
 	Rectangle.new color: ARGV[0].scan(/[a-zA-Z#0-9\s]/).join.split, width: $width, height: $height
 	info = IO.readlines(File.join(PATH, 'config.conf'))
 
