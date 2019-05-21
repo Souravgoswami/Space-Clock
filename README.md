@@ -5,13 +5,7 @@ Yet another beautiful and configurable digital clock application written in ruby
 ![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/aa.png)
 
 ## Running the Source Code 🍭
-  1. You need Ruby, and Ruby2D.
-         
-        You can download and install Ruby from here (documentation provided on the website):
-              https://www.ruby-lang.org/en/downloads
-         
-        You can get Ruby2D from here:
-              http://www.ruby2d.com/learn/get-started
+  1. You need to [install Ruby](https://www.ruby-lang.org/en/downloads) and [Ruby2D](http://www.ruby2d.com/learn/get-started)
              
   2. After successful installation, go to the Space::Clock directory and run the main.rb file with the Ruby interpreter.
 
@@ -82,3 +76,6 @@ Yet another beautiful and configurable digital clock application written in ruby
 ## Note 🗒
 
 Space::Clock has no physics. There's a lot of **violation of physics**, I have made it in a way so it looks beautiful...
+
+## Bugs 🐞
+If you find any bugs 🐛 or you have ideas 💡 to improve this project please let us know via [GitHub🐙](https://github.com/Souravgoswami/Space-Clock/issues) or email ✉️ me souravgoswami@gmail.com
