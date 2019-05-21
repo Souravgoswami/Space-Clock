@@ -42,6 +42,12 @@ file.write <<~EOF
 	# Flying comets (default: 0)
 	Comets = 4
 
+	# Show the Station (default: true)
+	Show_Station = true
+
+	# Stars floating on the station. Will only work if Show_Station is set to true. (default: 0)
+	Station_Stars = 100
+
 	# Floating squares in the default screen (default 0)
 	Floating_Squares = 12
 
