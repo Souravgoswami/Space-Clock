@@ -1,11 +1,10 @@
-# Space::Clock ![Icon](https://github.com/mansya/Space-Clock/blob/master/Space::Clock/crystals/spacecraft6.png)
+# Space::Clock ![Icon](https://github.com/mansya/Space-Clock/blob/master/Space::Clock/crystals/icon.png)
 <img src="Banner.png" width="60%" height="60%" />
 Yet another beautiful and configurable digital clock application written in ruby.
 
-![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
+![Space::Clock](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/aa.png)
 
-
-## Running the clock
+## Running the Source Code 🍭
   1. You need Ruby, and Ruby2D.
          
         You can download and install Ruby from here (documentation provided on the website):
@@ -77,12 +76,12 @@ Yet another beautiful and configurable digital clock application written in ruby
 **Read the instructions.txt file for these info, and for more - which contains the keyboard shortcuts, and mouse functions.**
 
 ## Screenshots 📸
-![Default](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-32-39.png)
+![Default](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/aa.png)
 
-![Default 2](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-36-37.png)
+![Default 2](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/bb.png)
 
-![Space](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/Screenshot%20from%202019-05-04%2020-23-17.png)
+![Space](https://github.com/Souravgoswami/Space-Clock/blob/master/Screenshots/cc.png)
 
-## Note
+## Note 🗒
 
-  Space::Clock has no physics. There's a lot of **violation of physics**, I have made it in a way so it looks beautiful...
+Space::Clock has no physics. There's a lot of **violation of physics**, I have made it in a way so it looks beautiful...
