@@ -1,5 +1,5 @@
-#!/usr/bin/ruby -w
-# Written by Sourav Goswami thanks to Ruby2D.
+#!/usr/bin/env ruby
+# Written by Sourav Goswami thanks to Ruby2D. Logo (icon.png) contributed by Mansya (https://github.com/mansya)
 # The GNU General Public License v3.0
 
 PATH = File.dirname(__FILE__)
@@ -7,35 +7,26 @@ FONT = File.join(PATH, 'mage', 'arima.otf')
 FONT2 = File.join(PATH, 'mage', 'MateSC-Regular.ttf')
 
 begin
-	%w(ruby2d securerandom open3).each { |el| require(el) }
+	%w(ruby2d securerandom open3).each { |g| require(g) }
+	GC.start(full_mark: true, immediate_sweep: true)
 
  	file= File.readlines(File.join(PATH, 'config.conf'))
 	conversion = ->(option) { file.select { |i| i.strip.start_with?(option.to_s) }[-1].to_s.split('=')[-1].to_s.strip }
 
-	$width, $height= conversion.call(:Width).to_i, conversion.call(:Height).to_i
-	$fps = conversion.call(:FPS).to_i
-	$border = conversion.call(:Borderless) == 'true'
-	$fullscreen = conversion.call(:Fullscreen) == 'true'
-	$defaulttimeformat = conversion.call(:Time_Format).to_i
-	$defaultdateformat = conversion.call(:Date_Format)
-	$defaultcolours = conversion.call(:Default_Colours).split(',')
-	$spaceships = conversion.call(:Spaceships).to_i
-	$staticmagic = conversion.call(:Static_Stars).to_i
-	$planets = conversion.call(:Planets).to_i
-	$comets = conversion.call(:Comets).to_i
-	$particle = conversion.call(:Floating_Squares).to_i
-	$magicparticles = conversion.call(:Magic_Particles).to_i
-	$flakes = conversion.call(:Snow_Flakes).to_i
-	$hoverparticles = conversion.call(:Mouse_Move_Particles).to_i
-	$fontsize = conversion.call(:Font_Size).to_i
-	$customtext1 = conversion.call(:Custom_Text_1)
-	$customsize1 = conversion.call(:Custom_Text1_Size).to_i
-	$customtext2 = conversion.call(:Custom_Text_2)
-	$customsize2 = conversion.call(:Custom_Text2_Size).to_i
-	$customfont = conversion.call(:Custom_Font_Path)
-	$customfontcolour = conversion.call(:Custom_Font_Colour)
-	$customfont = FONT if $customfont.empty? || !File.readable?($customfont)
+	# Declare the global variables after reading the config file. Previously we had 21 lines of codes to achieve what we can do in 5 lines!
+ 	%w(width height spaceships defaulttimeformat staticmagic planets comets particle magicparticles flakes hoverparticles fontsize customsize1 customsize2 station_stars).zip(%w(width height
+		spaceships time_format static_stars planets comets floating_squares magic_particles snow_flakes mouse_move_particles font_size custom_text1_size custom_text2_size station_stars))
+			.each { |gb| eval("$#{gb[0]} = conversion.(gb[1].split('_').map(&:capitalize).join('_').intern).to_i") }
 
+	%w(defaultdateformat customtext1 customtext2 customfont customfontcolour).zip(%w(date_format custom_text_1 custom_text_2 custom_font_path custom_font_colour))
+		.each { |gb| eval("$#{gb[0]} = conversion.(gb[1].split('_').map(&:capitalize).join('_').intern)") }
+
+	$border = conversion.(:Borderless) == 'true'
+	$fullscreen = conversion.(:Fullscreen) == 'true'
+	$station = conversion.(:Show_Station) != 'false'
+	$fps = conversion.(:FPS).to_i
+	$defaultcolours = conversion.(:Default_Colours).split(',')
+	$customfont = FONT if $customfont.empty? || !File.readable?($customfont)
 	$start_time = Time.new.strftime('%s').to_i
 
 rescue LoadError
@@ -45,12 +36,12 @@ rescue LoadError
 rescue NoMethodError, Errno::ENOENT
 	warn 'The config.conf file is either missing, or has wrong content. Generating a fresh config.conf file with default values.'
 
+	sleep 1
 	if Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{File.join(PATH, 'Subwindows', 'conf_generator.rb')}")
 		warn "Generated config.conf file with the default values\nLaunching a new #{__FILE__} window"
 		Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__}")
 		warn "Exiting main #{__FILE__}"
 	end
-
 	exit! 0
 end
 
@@ -58,42 +49,35 @@ END {
 	run_for = Time.new.strftime('%s').to_i - $start_time
 	hour, minute, second = run_for / 3600, run_for % 3600 / 60, run_for % 60
 	if second > 0
-		puts "Thanks for using Space::Clock for #{hour} hour#{hour == 1 ? '' : 's'}, #{minute} minute#{minute == 1 ? '' : 's'}, #{second} second#{second == 1 ? '': 's'}."
-		puts 'Have a Good Day!!'
+		puts "Thanks for Using Space::Clock for#{hour == 0 ? '' : ' ' + hour.to_s + ' hour'}#{hour > 1 ? 's,' : ''} #{minute} minute#{minute == 1 ? '' : 's'}, #{second} second#{second == 1 ? '': 's'}."
+		puts "Have a Good Day!!"
 	else
 		puts "Thanks for testing out Space::Clock!"
 	end
 }
 
-module Ruby2D
-	define_method(:change_colour) do |colour = "##{SecureRandom.hex(3)}"|
-		self.color, self.opacity = colour, opacity
-	end
-end
+module Ruby2D define_method(:change_colour) { |colour = "##{SecureRandom.hex(3)}"| self.color, self.opacity = colour, opacity } end
 
 define_method(:main) do
 	fullscreen = ARGV.find { |a| a =~ /[0-9]/ }.to_i
 	$fullscreen = fullscreen.method($fullscreen ? :even? : :odd?).call.method($fullscreen ? :& : :|).($fullscreen)
 
-	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps,
-		icon: File.join(PATH, 'crystals', 'spacecraft6.png')
+	set title: "Space::Clock", resizable: true, width: $width, height: $height, borderless: $border, fullscreen: $fullscreen, fps_cap: $fps, icon: File.join(PATH, 'crystals', 'icon.png')
 	bg = Rectangle.new width: $width, height: $height, color: $defaultcolours, z: -10
 
-	static = -> (size, z=-5) { Image.new(File.join(PATH, 'crystals', 'hoverstars' + rand(1..10).to_s + '.png'), x: rand($width), y: rand($height), width: size, height: size, z: z) }
-	magic = proc { |z=-15, size=1| Square.new x: rand($width), y: rand($height), z: z, color: %w(#ffff00 #ffffff #6ba3ff).sample, size: size }
-	t = proc { |format='%r'| Time.new.strftime(format) }
+	static = -> (size, z = -5) { Image.new(File.join(PATH, 'crystals', 'hoverstars' + rand(1..10).to_s + '.png'), x: rand($width), y: rand($height), width: size, height: size, z: z) }
+	magic = proc { |z = -15, size = 1| Square.new x: rand($width), y: rand($height), z: z, color: %w(#ffff00 #ffffff #6ba3ff).sample, size: size }
+	t = proc { |format = '%r'| Time.new.strftime(format) }
 
 	timelabel = Text.new t.('%T:%N')[0..-8], font: FONT, size: $fontsize + 20
 	timelabel.x, timelabel.y = $width/2 - timelabel.width/2, $height/2 - timelabel.height/2
-	timeline = Line.new x1: timelabel.x + timelabel.width/2, x2: timelabel.x + timelabel.width/2,
-			y1: timelabel.y + timelabel.height - 20, y2: timelabel.y + timelabel.height - 20, width: 3
+	timeline = Line.new x1: timelabel.x + timelabel.width/2, x2: timelabel.x + timelabel.width/2, y1: timelabel.y + timelabel.height - 20, y2: timelabel.y + timelabel.height - 20, width: 3
 	timelabelswitch = 1
 
 	ampm = Text.new t.call('%r')[-2..-1], font: FONT
 	ampm.x, ampm.y, ampm.opacity = timelabel.x + timelabel.width - 5, timelabel.y, 0
 
-	timeformat = ('%T:%N') if $defaulttimeformat
-	timeformat = '%I:%M:%S:%N' unless $defaulttimeformat
+	timeformat = $defaulttimeformat ? ('%T:%N') : '%I:%M:%S:%N'
 	ampm.opacity = 1 unless $defaulttimeformat
 
 	daylabel = Text.new t.call('%A'), font: FONT, size: $fontsize
@@ -102,8 +86,7 @@ define_method(:main) do
 	datelabel = Text.new t.call('%d/%m/%y'), font: FONT, size: $fontsize
 	datelabel.x, datelabel.y = $width/2 - datelabel.width/2, timelabel.y + timelabel.height
 
-	dateformat = t.call($defaultdateformat)
-	dateformatswitch = 1
+	dateformat, dateformatswitch = t.call($defaultdateformat), 1
 
 	greetings = []
 	generate_greetings = proc { |text = 'Greetings!', y = (datelabel.y + datelabel.height)|
@@ -129,12 +112,8 @@ define_method(:main) do
 	customtext2.x, customtext2.y = $width/2 - customtext2.width/2, $height - customtext2.height
 	customtext2drag = false
 
-	spacecrafts, fires, fireball, firepixels, comets, crystals = [], [], [], [], [], []
-	spacecrafts_speed, spacecrafs_size = [], []
-	particleswitch, randomparticles = true, []
-	snowflakes1, snowflake_particles = [], []
-
-	i, spaceshiphover = 0, nil
+	spacecrafts, fires, fireball, firepixels, comets, crystals, spacecrafts_speed, spacecrafs_size, snowflakes1, snowflake_particles= Array.new(10) { [] }
+	particleswitch, randomparticles, i, spaceshiphover = true, [], 0, nil
 
 	Thread.new do
 		$width./(35).times do |temp|
@@ -160,9 +139,9 @@ define_method(:main) do
 	galaxy = Image.new(File.join(PATH, 'crystals', 'galaxy1.png'), y: 0, z: -25, width: timelabel.width * 2, height: timelabel.width)
 	galaxy.x, galaxy.y = $width/2 - galaxy.width/2, $height/2 - galaxy.height/2
 
-	fires = Array.new($spaceships) do |temp|
+	fires = Array.new($spaceships) do
 		speed = rand(3.0..10.0)
-		img = Image.new(File.join(PATH, 'crystals', 'spacecraft' + rand(1..7).to_s + '.png'), x: rand($width), y: rand($height..$height + 2000), width: 25, height: 40, z: -15)
+		img = Image.new(File.join(PATH, 'crystals', 'spacecraft' + rand(1..6).to_s + '.png'), x: rand($width), y: rand($height..$height + 2000), width: 25, height: 40, z: -15)
 		spacecrafts.push(img)
 		spacecrafts_speed.push(speed)
 
@@ -176,13 +155,13 @@ define_method(:main) do
 		Image.new(File.join(PATH, 'crystals', 'fireball' + rand(1..6).to_s + '.png'), x: rand($width), y: rand($width), z: -15)
 	end
 
-	planets = Array.new($planets) do |temp|
+	planets = Array.new($planets) do
 			size = rand(10.0..30.0)
 			Image.new(File.join(PATH, 'crystals', "#{%w(jupiter pinkie earth).sample}.png"), width: size, height: size, x: rand($width), y: rand($height/2..$height),
 				z: -20, opacity: rand(0.5..1))
 	end
 
-	comets = Array.new($comets) do |temp|
+	comets = Array.new($comets) do
 		size = rand(2.0..10.0)
 		Image.new(File.join(PATH, 'crystals', %w(comet1 comet2).sample + '.png'), x: rand($width..$width + 700), y: rand(-700..0), z: -15, width: size, height: size,
 			color: %w(#ffff00 #ffffff #6ba3ff #ff6850).sample)
@@ -192,28 +171,33 @@ define_method(:main) do
 
 	($width/99).times { |temp| Image.new(File.join(PATH, 'crystals', 'snow.png'), y: $height - 10, x: temp * 100, z: -14) }
 	sparkles = Array.new($width / 35) { magic.call(-12) }
-
-	($width/10).times { |temp| randomparticles[temp] = static.call(rand(4..8)) }
+	randomparticles = Array.new($width/10) { static.call(rand(4..8)) }
 	Image.new(File.join(PATH, 'crystals', 'moon.png'), x: 0, y: $height - 80, width: 100, height: 100 , z: -20)
 
-	snow_flake_speed = []
-	snowflakes1 = Array.new($flakes) do |temp|
-		size = rand(25.0..35.0)
-		snow_flake_speed.push(rand(-1..1))
-		Image.new(File.join(PATH, 'crystals', "#{%w(flake1 flake2).sample}.png"), x: rand($width), y: rand(-1000..0), z: -10, width: size, height: size, opacity: rand(0.3..0.7))
+	if $station
+		station = Image.new(File.join(PATH, 'crystals', 'station.png'), z: -16)
+		station.x, station.y = rand(station.width..$width - station.width), $height - station.height - 10
+		station_light = Image.new(File.join(PATH, 'crystals', 'station_light.png'), color: 'blue', x: station.x, y: station.y, z: -16)
+		station_light_control = Array.new(3) { rand } << 1
+
+		station_stars = Array.new($station_stars) { Square.new(size: rand(1..2), x: rand(station.x..station.x + station.width),
+				y: rand(station.y..station.y + station.height), z: [-14, -16].sample)
+		}
+		station_stars_size = station_stars.size
+	end
+
+	snowflake_particles = Array.new($flakes * 2) { magic.(1) }
+	snow_flake_speed = Array.new($flakes) { rand(-1..1) }
+	snowflakes1 = Array.new($flakes) do
+		Image.new(File.join(PATH, 'crystals', "#{%w(flake1 flake2).sample}.png"), x: rand($width), y: rand(-1000..0), z: -10,
+			width: (size = rand(25.0..35.0)), height: size, opacity: rand(0.3..0.7))
 	end
 
 	$hoverparticles = 1 if $hoverparticles <= 0
 	hoverparticles, magicparticles = Array.new($hoverparticles) { static.(rand(8..15)) }, Array.new($magicparticles) { static.call(rand(8..15)) }
-	snowflake_particles = Array.new($flakes * 2) { |temp| magic.(1) }
-
-	speeds = []
-	magics = Array.new(100) do |temp|
-		speeds << rand(2.0..8.0)
-		magic.call(-5, 2)
- 	end
-
 	$staticmagic.times { static.call(rand(4..8)) }
+	speeds = Array.new(100) { rand(2.0..8.0) }
+	magics = Array.new(100) { magic.call(-5, 2) }
 
 	fireball = Array.new($spaceships * rand(10..12)) do |temp|
 		tempsize = rand(10..19)
@@ -222,31 +206,29 @@ define_method(:main) do
 			z: -15, height: tempsize, width: tempsize, opacity: 0)
 	end
 
-	tempsize = rand(80..100)
-	light = Image.new(File.join(PATH, 'crystals', 'light.png'), width: tempsize, height: tempsize, x: rand(100..$width - 100), y: 20, z: -20)
+	light = Image.new(File.join(PATH, 'crystals', 'light.png'), width: (tempsize = rand(80..100)), height: tempsize, x: rand(100..$width - 100), y: 20, z: -20)
 	mercury, xflag = Image.new(File.join(PATH, 'crystals', %w(pinkie earth).sample + '.png'), width: 1, height: 1, x: light.x - light.width/2,
 							y: light.y + light.height/2 - 5, z: -21, color: '#000000'), 0
-
 	touched_obj = nil
 
 	on :mouse_move do |e|
 		touched_obj = if datelabel.contains?(e.x, e.y) then datelabel
-		elsif daylabel.contains?(e.x, e.y) then daylabel
-		elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y) then timelabel
-		else nil
+			elsif daylabel.contains?(e.x, e.y) then daylabel
+			elsif timelabel.contains?(e.x, e.y) or ampm.contains?(e.x, e.y) then timelabel
+			else nil
 		end
 
 		snowflakes1.each { |val| val.opacity = 0 if val.contains?(e.x, e.y) }
 
 		if customtext1.contains?(e.x, e.y) and !customtext1.text.empty?
-				customtext1.x, customtext1.y = e.x - customtext1.width/2, e.y - customtext1.height/2 if customtext1drag
-				movealpha, customemove.x = true, customtext1.x + customtext1.width/2 - customemove.width/2
-				customemove.y = customtext1.y + customtext1.height/2 - customemove.height/2
+			customtext1.x, customtext1.y = e.x - customtext1.width/2, e.y - customtext1.height/2 if customtext1drag
+			movealpha, customemove.x = true, customtext1.x + customtext1.width/2 - customemove.width/2
+			customemove.y = customtext1.y + customtext1.height/2 - customemove.height/2
 
 		elsif customtext2.contains?(e.x, e.y) and !customtext2.text.empty?
-				customtext2.x, customtext2.y = e.x - customtext2.width/2, e.y - customtext2.height/2 if customtext2drag
-				movealpha, customemove.x = true, customtext2.x + customtext2.width/2 - customemove.width/2
-				customemove.y = customtext2.y + customtext2.height/2 - customemove.height/2
+			customtext2.x, customtext2.y = e.x - customtext2.width/2, e.y - customtext2.height/2 if customtext2drag
+			movealpha, customemove.x = true, customtext2.x + customtext2.width/2 - customemove.width/2
+			customemove.y = customtext2.y + customtext2.height/2 - customemove.height/2
 
 		else
 			movealpha = false
@@ -256,7 +238,7 @@ define_method(:main) do
 		el.x, el.y, el.opacity = e.x, e.y, 1
 
 		particles.each { |val| val.opacity = 0 if val.contains?(e.x, e.y) }
-		for val in spacecrafts do if val.contains?(e.x, e.y) then spaceshiphover = val ; break end end
+		spacecrafts.each { |val| (spaceshiphover = val) && (break) if val.contains?(e.x, e.y) }
 	end
 
 	on :mouse_down do |e|
@@ -284,7 +266,8 @@ define_method(:main) do
 					elsif time >=  12 and time < 16 then "Good Afternoon."
 					elsif time >=  16 and time < 19 then "Good Evening!!..."
 					else "Very Good Night" end,
-					daylabel.y - 50)
+					daylabel.y - 50
+				)
 
 				generate_greetings.(t.('%c'), datelabel.y + datelabel.height)
 			end
@@ -324,7 +307,7 @@ define_method(:main) do
 			end
 		end
 
-		Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'properties.rb'), "#{$defaultcolours}") } if %w(c s).include?(k.key)
+		Thread.new { Open3.capture2e(File.join(RbConfig::CONFIG['bindir'], 'ruby'),File.join(PATH, 'Subwindows', 'properties.rb'), $defaultcolours.join(' ')) if %w(c s).include?(k.key) }
 
 		if k.key == 'up'
 			bg.opacity += 0.2 if bg.opacity < 1
@@ -338,15 +321,15 @@ define_method(:main) do
 		end
 
 		hoverparticles.each { |el| el.x, el.y, el.opacity = rand($width), rand($height), 1 } if ['right', 'left'].include?(k.key)
-		exit if ['escape', 'q', 'p'].include?(k.key)
+		close if ['escape', 'q', 'p'].include?(k.key)
 
 		if ['right shift', 'left shift'].include?(k.key)
 			puts  "Creating a new window for #{__FILE__}! Please wait!"
-			Thread.new { puts Open3.capture2e('ruby', __FILE__) }
+			puts Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__}")
 			puts "Happily opened another #{__FILE__}"
 		end
 
-		Thread.new { puts Open3.capture2e('ruby', File.join(PATH, 'Subwindows', 'about.rb')) } if ['a', 'i'].include?(k.key)
+		Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{File.join(PATH, 'Subwindows', 'about.rb')}") if %w(a i).include?(k.key)
 
 		if ['left alt', 'right alt', 'right ctrl', 'left ctrl', 'tab'].include?(k.key)
 			spacecrafts.each { |val| val.x, val.y = rand($width), rand($height + 1000) }
@@ -357,11 +340,12 @@ define_method(:main) do
 			movealpha = false
 			customtext1.x, customtext1.y, customtext2.x, customtext2.y = $width/2 - customtext1.width/2, 0, $width/2 - customtext2.width/2, $height - customtext2.height
 			bg.change_colour($defaultcolours)
+
+			station.x, station.y = rand(station.width..$width - station.width), $height - station.height - 10
+			station_light.x, station_light.y = station.x, station.y
 		end
 
-		if k.key == 'f11'
-			close if Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__} #{fullscreen += 1}")
-		end
+		close if Open3.pipeline_start("#{File.join(RbConfig::CONFIG['bindir'], 'ruby')} #{__FILE__} #{fullscreen += 1}") if k.key == 'f11'
 	end
 
 	air_direction = [-1, 0, 1].sample
@@ -398,7 +382,7 @@ define_method(:main) do
 
 		spaceshiphover.y > 0 ? (spaceshiphover.y -= spaceshiphover.height / 3.0) : (spaceshiphover = false) if spaceshiphover
 
-		ampm.text = t.call[-3..-1]
+		ampm.text.replace(t.call[-3..-1])
 
 		if bg.opacity < 1
 			snowflake_particles[0..30].each { |val| val.x, val.y = rand($width), rand($height) }
@@ -424,9 +408,7 @@ define_method(:main) do
 
 			mercury.x += xflag
 
-			if (mercury.x >= light.x + light.width/3 and mercury.x <= light.x + light.width/2) and xflag == -1 then light.b = light.g = rand(0.6..1)
-			else light.b = light.g = 1 end
-
+			light.b = light.g = ((mercury.x >= light.x + light.width/3 and mercury.x <= light.x + light.width/2) and xflag == -1) ?  rand(0.6..1) : 1
 			particleswitch = false
 
 			for val in comets
@@ -475,14 +457,14 @@ define_method(:main) do
 				val.change_colour
 			end
 		else
-			particleswitch = true
+			particleswitch ||= true
 
 			snowflakes1.each_with_index do |val, index|
 				if val.y < $height - val.height/2 and (val.x > -val.height and val.x < $width) and val.opacity > 0
 					val.x += air_direction
-					val.y += snow_flake_speed[index] + air_direction.abs
+					val.y += snow_flake_speed[index] + air_direction.abs + 0.5
 
-					unless air_direction == 0 then val.rotate += air_direction * 3 else val.rotate += 1 end
+					air_direction == 0 ? val.rotate += 1 : val.rotate + air_direction * 3
 					psample = snowflake_particles.sample
 					psample.x, psample.y = rand(val.x..val.x + val.width), rand(val.y..val.y + val.height +  10)
 					psample.change_colour('#FFFFFF')
@@ -515,7 +497,7 @@ define_method(:main) do
 		randomparticles.sample.opacity = [0, 1].sample
 
 		magics.each_with_index do |val, index|
-			val.x += Math.sin(i/speeds[index]) * 2
+			val.x += Math.sin(i / speeds[index]) * 2
 			val.y -= speeds[index]
 			val.opacity = [0, 1].sample
 			val.color, val.x, val.y = %w(#ffff00 #ffffff).sample, rand($width - val.width), $height if val.y < -val.height
@@ -525,11 +507,7 @@ define_method(:main) do
 			greetings.each { |el| el.remove }
 			greetings.clear
 		else
-			greetings.each_with_index do |el, index|
-				el.x += greetflag if index.odd?
-				el.x -= greetflag if index.even?
-				el.opacity -= 0.015
-			end
+			greetings.each_with_index { |el, index| el.x, el.opacity = el.x.method(index.odd? ? :+ : :-).(greetflag), el.opacity - 0.015 }
 		end unless greetings.empty?
 
 		particles.each_with_index do |val, index|
@@ -542,6 +520,20 @@ define_method(:main) do
 				val.y, val.x, val.opacity, val.rotate = $height, rand(-val.width..$width), rand(0.1..0.3), rand(90)
 			end
 		end if particleswitch
+
+		if $station
+			station_light_control.clear.concat(Array.new(3) { rand } << 1) if i % ($fps / 5) == 0
+			station_light.r = station_light.r.method(station_light.r < station_light_control[0] ? :+ : :-).(0.05)
+			station_light.g = station_light.g.method(station_light.g < station_light_control[1] ? :+ : :-).(0.05)
+			station_light.b = station_light.b.method(station_light.b < station_light_control[2] ? :+ : :-).(0.05)
+
+			station_stars.each_with_index do |val, index|
+				val.x, val.y = val.x + Math.sin(index), val.y - (index / (station_stars_size / 2.0) + 0.5)
+				val.change_colour([station_light.r, station_light.g, station_light.b, val.opacity])
+				val.opacity -= index / (station_stars_size / 0.1) + 0.005
+				val.x, val.y, val.opacity, val.z = rand(station.x..station.x + station.width), station_light.y + station_light.height - val.size, 1, [-14, -16].sample if val.opacity <= 0
+			end
+		end
 	end
 end
 
@@ -551,5 +543,5 @@ begin
 rescue SystemExit, Interrupt
 	puts
 rescue Exception => e
-	warn "Error happened:\n\n#{e}\n\n#{e.backtrace.join("\n")}"
+	warn "An Exception Caught:\n\n#{e}\n\n#{e.backtrace.join("\n")}"
 end
