@@ -13,10 +13,7 @@ Yet another beautiful and configurable digital clock application written in ruby
         You can get Ruby2D from here:
               http://www.ruby2d.com/learn/get-started
              
-  2. After successful installation, go to the Space::Clock directory/folder, and run the main.rb file with ruby.
-  3. You can run it directly by clicking on it twice, like other applications - for that you first need to make it executable:
-  
-          chmod 777 main.rb
+  2. After successful installation, go to the Space::Clock directory and run the main.rb file with the Ruby interpreter.
 
 ## Keys ⌨️
 
