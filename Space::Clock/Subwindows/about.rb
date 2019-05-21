@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
-require 'ruby2d'
-require 'open3'
+%w(ruby2d open3).each { |g| require(g) }
 
 $width, $height = 1200, 840
 
@@ -127,5 +126,4 @@ def main
 end
 
 main
-
 show
